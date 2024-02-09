@@ -11,7 +11,8 @@ beforeEach(() => {
 describe('app', async () => {
   it('has nav items', async () => {
     const document = await $fetchToDom('/')
-    expect(document.querySelectorAll('nav .nav-item').length).toBe(2)
+    expect(document.querySelectorAll('nav .nav-item').length).toBe(3)
+    expect(document.querySelector('nav a[href="/"]')).not.toBeNull()
     expect(document.querySelector('nav button[data-testid="color-mode-button"]')).not.toBeNull()
     expect(document.querySelector('nav a[href="https://github.com/pedraal/chipchat"]')).not.toBeNull()
   })

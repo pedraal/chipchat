@@ -18,6 +18,10 @@
   .primary-gradient {
     @apply from-primary-500 to-yellow-500
   }
+
+  .text-primary-gradient {
+    @apply bg-gradient-to-r primary-gradient bg-clip-text text-transparent;
+  }
 }
 
 @layer components {
