@@ -4,8 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  font-family: 'lexend', sans-serif;
+@layer base {
+  * {
+    font-family: 'lexend', sans-serif;
+  }
+}
+
+@layer utilities {
+  .primary-gradient {
+    @apply from-amber-400 dark:from-amber-500 to-yellow-400 dark:to-yellow-500
+  }
 }
 
 @layer components {
