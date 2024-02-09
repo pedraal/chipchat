@@ -11,13 +11,17 @@
 }
 
 @layer utilities {
+  .body-bg {
+    @apply bg-gray-200 dark:bg-gray-900;
+  }
+
   .primary-gradient {
-    @apply from-amber-400 dark:from-amber-500 to-yellow-400 dark:to-yellow-500
+    @apply from-primary-500 to-yellow-500
   }
 }
 
 @layer components {
   .nav-item {
-    @apply hover:text-amber-400 dark:hover:text-amber-500 transition-colors;
+    @apply hover:text-primary-500 transition-colors;
   }
 }

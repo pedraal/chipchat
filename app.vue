@@ -8,7 +8,7 @@ useHead({
     },
   ],
   bodyAttrs: {
-    class: 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100',
+    class: 'body-bg text-gray-900 dark:text-gray-100',
   },
 })
 
@@ -22,13 +22,21 @@ function toggleColorMode() {
 
 <template>
   <div class="w-full min-h-screen flex flex-col">
-    <nav class="flex items-center justify-end gap-4 container mx-auto p-2">
-      <button class="nav-item" data-testid="color-mode-button" @click="toggleColorMode">
-        <Icon name="heroicons:sun" class="w-6 h-6" />
-      </button>
-      <a href="https://github.com/pedraal/chipchat" class="nav-item">
-        <Icon name="fa-brands:github" class="w-6 h-6" />
-      </a>
+    <nav class="flex items-center justify-between gap-4 container mx-auto p-2">
+      <NuxtLink to="/" class="nav-item flex items-center gap-1 text-xl">
+        <Icon name="fluent-emoji-high-contrast:potato" class="text-primary-400 dark:text-primary-600" />
+        <span class=" bg-gradient-to-r primary-gradient bg-clip-text text-transparent">
+          ChipChat
+        </span>
+      </NuxtLink>
+      <div class="flex gap-4">
+        <button class="nav-item" data-testid="color-mode-button" @click="toggleColorMode">
+          <Icon name="heroicons:sun" class="w-6 h-6" />
+        </button>
+        <a href="https://github.com/pedraal/chipchat" class="nav-item">
+          <Icon name="fa-brands:github" class="w-6 h-6" />
+        </a>
+      </div>
     </nav>
     <NuxtPage />
   </div>
