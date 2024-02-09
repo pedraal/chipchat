@@ -28,4 +28,8 @@
   .nav-item {
     @apply hover:text-primary-500 transition-colors;
   }
+
+  .page-title {
+    @apply text-3xl font-bold text-center;
+  }
 }
