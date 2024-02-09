@@ -7,7 +7,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test": "vitest run --dir tests"
   },
   "dependencies": {
     "nuxt": "^3.10.1",
@@ -16,9 +17,15 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.6.4",
+    "@nuxt/test-utils": "^3.11.0",
     "@nuxtjs/color-mode": "^3.3.2",
     "@nuxtjs/tailwindcss": "^6.11.3",
+    "@vitest/ui": "^1.2.2",
+    "@vue/test-utils": "^2.4.4",
     "eslint": "^8.56.0",
-    "nuxt-icon": "^0.6.8"
+    "happy-dom": "^13.3.8",
+    "nuxt-icon": "^0.6.8",
+    "playwright-core": "^1.41.2",
+    "vitest": "^1.2.2"
   }
 }
