@@ -1,0 +1,15 @@
+@import url(https://fonts.bunny.net/css?family=lexend:100,200,300,400,500,600,700,800,900);
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'lexend', sans-serif;
+}
+
+@layer components {
+  .nav-item {
+    @apply hover:text-amber-400 dark:hover:text-amber-500 transition-colors;
+  }
+}
