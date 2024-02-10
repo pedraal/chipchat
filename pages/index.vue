@@ -1,3 +1,11 @@
+<script setup lang="ts">
+definePageMeta({
+  middleware: [
+    'guest',
+  ],
+})
+</script>
+
 <template>
   <div class="grow w-full flex justify-center items-center">
     <div class="flex flex-col items-center gap-6">
@@ -14,7 +22,7 @@
       </div>
       <div class="relative group mt-8">
         <div class="absolute -inset-1 group-hover:blur-xl transition-all bg-gradient-to-r primary-gradient rounded-full blur-lg animate-tilt" />
-        <NuxtLink to="/login" class="relative px-7 py-4 body-bg rounded-full leading-none" data-testid="main-login">
+        <NuxtLink to="/login" class="relative px-7 py-4 body-bg rounded-full leading-none group-hover:text-primary-500" data-testid="main-login">
           Signup or login
         </NuxtLink>
       </div>

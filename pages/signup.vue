@@ -1,7 +1,29 @@
 <script lang="ts" setup>
-const name = ref('')
-const password = ref('')
-const passwordConfirmation = ref('')
+definePageMeta({
+  middleware: [
+    'guest',
+  ],
+})
+
+const formData = useState('signupFormData', () => ({
+  username: '',
+  password: '',
+  passwordConfirmation: '',
+  errors: {
+    username: [] as string[],
+    password: [] as string[],
+    passwordConfirmation: [] as string[],
+  },
+}))
+
+useCookieFormData<typeof formData.value>(formData, ['username', 'password'])
+
+function validate(event: Event) {
+  if (formData.value.password !== formData.value.passwordConfirmation) {
+    event.preventDefault()
+    formData.value.errors.passwordConfirmation = ['Passwords do not match']
+  }
+}
 </script>
 
 <template>
@@ -10,15 +32,15 @@ const passwordConfirmation = ref('')
       <h1 class="page-title mb-4">
         Sign up to ChipChat
       </h1>
-      <FormAuth action="/api/login">
-        <FormGroup name="name" label="Username">
-          <FormInput v-model="name" type="text" />
+      <FormAuth action="/api/signup" method="post" @submit="validate">
+        <FormGroup name="username" label="Username" :error="formData.errors.username[0]">
+          <FormInput v-model="formData.username" type="text" autocomplete="username" />
         </FormGroup>
-        <FormGroup name="password" label="Password">
-          <FormInput v-model="password" type="password" />
+        <FormGroup name="password" label="Password" :error="formData.errors.username[0]">
+          <FormInput v-model="formData.password" type="password" autocomplete="new-password" />
         </FormGroup>
-        <FormGroup name="passwordConfirmation" label="Password Confirmation">
-          <FormInput v-model="passwordConfirmation" type="password" />
+        <FormGroup name="passwordConfirmation" label="Password Confirmation" :error="formData.errors.passwordConfirmation[0]">
+          <FormInput v-model="formData.passwordConfirmation" type="password" autocomplete="new-password" />
         </FormGroup>
         <template #submit>
           Sign up

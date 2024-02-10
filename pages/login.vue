@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-const name = ref('')
+definePageMeta({
+  middleware: [
+    'guest',
+  ],
+})
+
+const username = ref('')
 const password = ref('')
 </script>
 
@@ -10,11 +16,11 @@ const password = ref('')
         Login to ChipChat
       </h1>
       <FormAuth action="/api/login">
-        <FormGroup name="name" label="Username">
-          <FormInput v-model="name" type="text" />
+        <FormGroup name="username" label="Username">
+          <FormInput v-model="username" type="text" autocomplete="username" />
         </FormGroup>
         <FormGroup name="password" label="Password">
-          <FormInput v-model="password" type="password" />
+          <FormInput v-model="password" type="password" autocomplete="password" />
         </FormGroup>
         <template #submit>
           Login
