@@ -1,5 +1,5 @@
 import { ZodError } from 'zod'
-import { UserRepository } from '~/db/models/user'
+import { UserRepository } from '~/db/repositories/user'
 
 export default defineEventHandler(async (event) => {
   const formData = await readFormData(event)
