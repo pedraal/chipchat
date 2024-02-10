@@ -11,12 +11,14 @@ import type { UserModel } from '~/db/repositories/user'
 export interface ServerToClientEvents {
   roomUpdate: (room: PopulatedChatRoom) => void
   newMessage: (message: MessageModel) => void
+  banned: (roomId: string) => void
 }
 
 export interface ClientToServerEvents {
   joinRoom: (roomName: string, callback: (errors: any, roomAndMessages?: { room: PopulatedChatRoom, messages: MessageModel[] }) => void) => void
   leaveRoom: () => void
   sendMessage: (contentId: string, callback: (errors: any) => void) => void
+  banUser: (userId: string, callback: (errors: any) => void) => void
 }
 
 interface SocketData {
@@ -74,8 +76,8 @@ export default defineNitroPlugin(async (nitro) => {
         socket.data.currentRoomId = room._id.toString()
         const roomWithUsers = await chatRoomRepository.populateUsers(room)
         const messages = await messageRepository.getRecentForRoom(room._id.toString())
-        callback(null, { room: roomWithUsers, messages })
         io.to(`room:${room._id.toString()}`).emit('roomUpdate', roomWithUsers)
+        callback(null, { room: roomWithUsers, messages })
       }
       catch (error) {
         callback(formatError(error), undefined)
@@ -90,8 +92,33 @@ export default defineNitroPlugin(async (nitro) => {
       console.log(`[WS] client ${socket.data.user_id} sending message in room: ${socket.data.currentRoomId}`)
       try {
         const message = await messageRepository.create(socket.data.user, socket.data.currentRoomId, { content })
-        callback(null)
         io.to(`room:${socket.data.currentRoomId}`).emit('newMessage', message)
+        callback(null)
+      }
+      catch (error) {
+        callback(formatError(error))
+      }
+    })
+
+    socket.on('banUser', async (userId, callback) => {
+      console.log(`[WS] client ${socket.data.user_id} banning user: ${userId} from room: ${socket.data.currentRoomId}`)
+      try {
+        const room = await chatRoomRepository.findOneAndBanUser(socket.data.user_id, socket.data.currentRoomId, userId)
+        if (!room)
+          throw new Error('Failed to ban user')
+        const roomWithUsers = await chatRoomRepository.populateUsers(room)
+        const roomId = room._id.toString()
+        io.in(`room:${roomId}`).fetchSockets().then((sockets) => {
+          for (const socket of sockets) {
+            if (socket.data.user_id === userId && socket.data.currentRoomId === roomId) {
+              socket.leave(`room:${roomId}`)
+              socket.data.currentRoomId = ''
+              socket.emit('banned', roomId)
+            }
+          }
+        })
+        io.to(`room:${socket.data.currentRoomId}`).emit('roomUpdate', roomWithUsers)
+        callback(null)
       }
       catch (error) {
         callback(formatError(error))

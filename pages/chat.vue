@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PopulatedChatRoom } from '~/db/repositories/chatroom'
 import type { MessageModel } from '~/db/repositories/message'
+import type { UserModel } from '~/db/repositories/user'
 
 definePageMeta({
   middleware: [
@@ -15,20 +16,21 @@ const roomName = ref('')
 const roomNameError = ref<string[]>([])
 const room = ref<PopulatedChatRoom>()
 const messages = ref<MessageModel[]>([])
+const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
-
-const messageContainer = ref<HTMLElement>()
 
 function joinRoom() {
   if (roomName.value === '' || !socket.value)
     return
 
   socket.value.emit('joinRoom', roomName.value, (errors, data) => {
-    if (errors.name) {
+    if (errors?.name) {
       roomNameError.value = errors.name._errors
     }
     else if (data) {
+      roomName.value = ''
+      roomNameError.value = []
       room.value = data.room
       messages.value = data.messages.reverse()
       scrollToBottom()
@@ -69,11 +71,41 @@ onMounted(() => {
     if (willScroll)
       scrollToBottom()
   })
+
+  socket.value?.on('banned', (roomId) => {
+    if (!room.value || `${room.value._id}` !== roomId)
+      return
+
+    room.value = undefined
+    messages.value = []
+  })
 })
 
 function scrollToBottom() {
   nextTick(() => {
     messageContainer.value?.scrollTo(0, messageContainer.value.scrollHeight)
+  })
+}
+
+const inspectedUser = ref<Partial<UserModel> | undefined>()
+const { user } = useUserSession()
+
+const isAdmin = computed(() => room.value?.adminId === user.value._id)
+
+function openUserModal(toInspect?: Partial<UserModel>) {
+  if (toInspect && isAdmin.value && toInspect._id !== user.value._id)
+    inspectedUser.value = toInspect
+}
+
+function banUser() {
+  if (!socket.value || !inspectedUser.value || !room.value)
+    return
+
+  socket.value.emit('banUser', `${inspectedUser.value._id}`, (errors) => {
+    if (errors)
+      console.error(errors)
+
+    inspectedUser.value = undefined
   })
 }
 </script>
@@ -109,13 +141,16 @@ function scrollToBottom() {
         Online :
       </p>
       <div class="flex max-sm:overflow-x-auto sm:flex-wrap sm:overflow-y-auto gap-2 py-2 max-h-24">
-        <UserTag v-for="user in room.connectedUsers" :key="user.username" :username="user.username" class="shrink-0" />
+        <div v-for="connectedUser in room.connectedUsers" :key="connectedUser.username" class="relative shrink-0" :class="[{ 'cursor-pointer': isAdmin && connectedUser.username !== user.username }]" @click="openUserModal(connectedUser)">
+          <Icon v-if="`${connectedUser._id}` === room.adminId" name="heroicons:academic-cap-solid" class="text-primary-400 absolute -top-3 -right-2 h-6 w-6 rotate-12" />
+          <UserTag :username="connectedUser.username" />
+        </div>
       </div>
     </div>
     <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/5 rounded-lg">
       <div v-for="message in messages" :key="`${message._id}`" class="flex flex-col gap-1 p-2">
         <div>
-          <UserTag :username="message.username" class="shrink-0" />
+          <UserTag :username="message.username" :class="[{ 'cursor-pointer': isAdmin && message.username !== user.username }]" @click="openUserModal(room.connectedUsers.find(u => `${u._id}` === message.userId))" />
         </div>
         <p>
           {{ message.content }}
@@ -128,5 +163,27 @@ function scrollToBottom() {
         <Icon name="heroicons:paper-airplane" class="w-6 h-6" />
       </button>
     </form>
+  </div>
+
+  <div v-if="inspectedUser" class="absolute inset-0 bg-gray-800/60 p-4">
+    <div class="bg-gray-100 dark:bg-gray-900 max-w-md w-full mx-auto flex flex-col gap-4 rounded-lg p-4">
+      <p class="text-center">
+        <UserTag :username="inspectedUser.username" class="text-2xl" />
+      </p>
+
+      <p class="text-lg">
+        You are the ruler of this chat room, you can ban this user if you want.<br> But remember:
+      </p>
+      <p class="italic text-xl text-center">
+        "with great power comes great responsibility" <Icon name="game-icons:spider-mask" />
+      </p>
+      <button class="btn btn-primary" @click="banUser">
+        <Icon name="solar:sledgehammer-bold" class="w-5 h-5" />
+        Slam the ban hammer
+      </button>
+      <button class="btn btn-secondary" @click="inspectedUser = undefined">
+        Close
+      </button>
+    </div>
   </div>
 </template>
