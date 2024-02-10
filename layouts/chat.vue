@@ -14,8 +14,10 @@ useHead({
 </script>
 
 <template>
-  <div class="w-full min-h-screen flex flex-col">
+  <div class="w-full h-screen flex flex-col">
     <Navbar />
-    <slot />
+    <main class="grow overflow-y-auto">
+      <slot />
+    </main>
   </div>
 </template>

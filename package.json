@@ -11,6 +11,7 @@
     "test": "vitest run --dir tests"
   },
   "dependencies": {
+    "@vueuse/nuxt": "^10.7.2",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",

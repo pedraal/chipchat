@@ -7,6 +7,7 @@ export default defineNuxtConfig({
     'nuxt-icon',
     '@nuxt/test-utils/module',
     'nuxt-auth-utils',
+    '@vueuse/nuxt',
   ],
   colorMode: {
     classSuffix: '',

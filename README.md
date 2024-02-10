@@ -1,17 +1,15 @@
 # ChipChat
 
 ## TODOS
-- [] Create/Join chat room by entering a name
-- [] Room users list
-- [] Get 10 last messages on connect
-- [] Read new messages
-- [] Send messages
+- [x] Create/Join chat room by entering a name
+- [x] Room users list
+- [x] Get 10 last messages on connect
+- [x] Read new messages
+- [x] Send messages
 - [x] Signup
 - [x] Login
-- [] Production
 - [] Admin (1st user) can kick users
 - [] Tests
-- [] Bonus : Oauth github
 
 ## Setup
 
@@ -47,10 +45,12 @@ pnpm exec playwright-core install
 
 ### What would I've done with more time
 - Implement a mailing service for the auth process (email confirmation, password reset etc.).
-- Implement a passwordless auth system.
+- Implement a passwordless auth system (like passkeys).
 - Find a better way to pass validation data between auth api calls and the forms but the cookie system i've used looks good enough.
+- Use an ORM for the database.
+- Better logging system.
+- Better error handling.
 - Better testing, specially component unit testing.
-- Better role management.
 
 ### What would I've done if it was a real project
 - Use a component library like `nuxt/ui`.

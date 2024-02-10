@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
+import { ObjectId } from 'mongodb'
 import { type BaseModel, BaseRepository } from './base'
 
 export const user = z.object({
@@ -27,7 +28,7 @@ export class UserRepository extends BaseRepository<UserModel> {
         if (user)
           return false
         return true
-      }, { message: 'Username already exists' }),
+      }, { message: 'Username already taken' }),
     })
 
     const candidate = await userDTOWithUniqueUsername.parseAsync(dto)
@@ -35,7 +36,7 @@ export class UserRepository extends BaseRepository<UserModel> {
     candidate.password = bcrypt.hashSync(candidate.password, salt)
     const document = this.initDocument({ ...candidate })
     await this.collection.insertOne(document)
-    return document
+    return document as UserModel
   }
 
   async authenticate(dto: UserDTO) {
@@ -44,5 +45,9 @@ export class UserRepository extends BaseRepository<UserModel> {
       throw new Error('Invalid username or password')
 
     return user
+  }
+
+  async findMany(ids: string[]): Promise<Omit<UserModel, 'password'>[]> {
+    return await this.collection.find({ _id: { $in: ids.map(id => new ObjectId(id)) } }, { projection: { password: 0 } }).toArray()
   }
 }

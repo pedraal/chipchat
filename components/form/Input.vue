@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 defineProps<{
-  type: 'text' | 'password'
+  type?: 'text' | 'password' | 'textarea'
   name?: string
 }>()
 
 const model = defineModel()
 
-const injectedName = inject<string>('name')
+const injectedName = inject<string>('name', '')
 </script>
 
 <template>
