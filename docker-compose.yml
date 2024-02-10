@@ -23,6 +23,16 @@ services:
       - traefik.http.routers.chipchat-app-secured.tls=true
       - traefik.http.routers.chipchat-app-secured.rule=Host(`${APP_DOMAIN}`)
 
+      - traefik.http.services.chipchat-socket.loadbalancer.server.port=4000
+      - traefik.http.routers.chipchat-socket.service=chipchat-socket@docker
+      - traefik.http.routers.chipchat-socket.rule=Host(`${WS_DOMAIN}`)
+      - traefik.http.routers.chipchat-socket.entrypoints=web
+      - traefik.http.routers.chipchat-socket.middlewares=redirect-https
+      - traefik.http.routers.chipchat-socket-secured.service=chipchat-socket@docker
+      - traefik.http.routers.chipchat-socket-secured.entrypoints=web-secured
+      - traefik.http.routers.chipchat-socket-secured.tls=true
+      - traefik.http.routers.chipchat-socket-secured.rule=Host(`${WS_DOMAIN}`)
+
 networks:
   proxy:
     external: true
