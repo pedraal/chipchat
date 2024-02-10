@@ -4,6 +4,12 @@ definePageMeta({
     'auth',
   ],
 })
+
+const { initSocket } = useSocket()
+
+onMounted(() => {
+  initSocket()
+})
 </script>
 
 <template>

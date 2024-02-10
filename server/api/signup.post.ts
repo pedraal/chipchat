@@ -12,13 +12,16 @@ export default defineEventHandler(async (event) => {
 
   try {
     const user = await repo.create({ username, password })
-    await setUserSession(event, { user })
+    const { setSessionWithJwt } = useSessionWithJwt()
+    await setSessionWithJwt(user)
 
     return sendRedirect(event, '/')
   }
   catch (error) {
     if (error instanceof ZodError)
       setCookie(event, 'formErrors', JSON.stringify(error.format()))
+    else
+      console.error(error)
 
     setCookie(event, 'formData', JSON.stringify({ username, password }))
     return sendRedirect(event, '/signup')

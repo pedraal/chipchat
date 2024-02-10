@@ -11,11 +11,13 @@ export default defineEventHandler(async (event) => {
 
   try {
     const user = await repo.authenticate({ username, password })
-    await setUserSession(event, { user })
+    const { setSessionWithJwt } = useSessionWithJwt()
+    await setSessionWithJwt(user)
 
     return sendRedirect(event, '/')
   }
   catch (error) {
+    console.error(error)
     setCookie(event, 'formData', JSON.stringify({ username, password }))
     return sendRedirect(event, '/login?error=true')
   }
