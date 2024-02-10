@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { Server } from 'socket.io'
+import { ZodError } from 'zod'
 import { DbClient } from '~/db/client'
 import type { PopulatedChatRoom } from '~/db/repositories/chatroom'
 import { ChatRoomRepository } from '~/db/repositories/chatroom'
@@ -77,7 +78,7 @@ export default defineNitroPlugin(async (nitro) => {
         io.to(`room:${room._id.toString()}`).emit('roomUpdate', roomWithUsers)
       }
       catch (error) {
-        callback(error, undefined)
+        callback(formatError(error), undefined)
       }
     })
 
@@ -93,7 +94,7 @@ export default defineNitroPlugin(async (nitro) => {
         io.to(`room:${socket.data.currentRoomId}`).emit('newMessage', message)
       }
       catch (error) {
-        callback(error)
+        callback(formatError(error))
       }
     })
 
@@ -115,6 +116,15 @@ export default defineNitroPlugin(async (nitro) => {
       socket.data.currentRoomId = ''
       const roomWithUsers = await chatRoomRepository.populateUsers(room)
       io.to(`room:${roomId}`).emit('roomUpdate', roomWithUsers)
+    }
+
+    function formatError(error: any) {
+      if (error instanceof ZodError)
+        return error.format()
+      else if (error instanceof Error)
+        return error.message
+      else
+        return error
     }
   })
 

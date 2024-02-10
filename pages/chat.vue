@@ -12,6 +12,7 @@ definePageMeta({
 const { initSocket, socket } = useSocket()
 
 const roomName = ref('')
+const roomNameError = ref<string[]>([])
 const room = ref<PopulatedChatRoom>()
 const messages = ref<MessageModel[]>([])
 const newMessage = ref('')
@@ -24,7 +25,9 @@ function joinRoom() {
     return
 
   socket.value.emit('joinRoom', roomName.value, (errors, data) => {
-    if (errors) { console.error(errors) }
+    if (errors.name) {
+      roomNameError.value = errors.name._errors
+    }
     else if (data) {
       room.value = data.room
       messages.value = data.messages.reverse()
@@ -82,7 +85,7 @@ function scrollToBottom() {
         Its time to join or create a chat room !
       </h1>
       <FormAuth @submit.prevent="joinRoom">
-        <FormGroup name="roomName" label="Room name">
+        <FormGroup name="roomName" label="Room name" :errors="roomNameError">
           <FormInput v-model="roomName" />
         </FormGroup>
         <template #submit>
@@ -92,11 +95,11 @@ function scrollToBottom() {
     </div>
   </div>
   <div v-else class="h-full flex flex-col w-full gap-4 p-4">
-    <div class="flex justify-between">
+    <div class="flex justify-between items-center gap-4">
       <a href="#" class="nav-item" @click="leaveRoom">
         <Icon name="heroicons:arrow-left" class="w-6 h-6" />
       </a>
-      <h1 class="page-title">
+      <h1 class="page-title truncate">
         # {{ room.name }}
       </h1>
       <div class="w-6 h-6" />
