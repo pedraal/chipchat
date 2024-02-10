@@ -31,7 +31,7 @@ function toggleColorMode() {
       </NuxtLink>
       <div class="flex gap-4">
         <button class="nav-item" data-testid="color-mode-button" @click="toggleColorMode">
-          <Icon name="heroicons:sun" class="w-6 h-6" />
+          <Icon :name="colorMode.value === 'dark' ? 'heroicons:sun' : 'heroicons:moon'" class="w-6 h-6" />
         </button>
         <a href="https://github.com/pedraal/chipchat" class="nav-item">
           <Icon name="fa-brands:github" class="w-6 h-6" />
