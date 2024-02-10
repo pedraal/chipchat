@@ -23,7 +23,7 @@ export default function<T extends Record<string, any>>(state: Ref<T>, cookieFiel
   })
 
   cookieFields.forEach((key) => {
-    state.value.errors[key] = formErrorsCookie.value[key]._errors
+    state.value.errors[key] = formErrorsCookie.value[key]?._errors
   })
 
   const event = useRequestEvent()

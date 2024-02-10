@@ -2,7 +2,7 @@
 const props = defineProps<{
   label: string
   name: string
-  error?: string
+  errors?: string[]
 }>()
 
 provide('name', props.name)
@@ -10,8 +10,8 @@ provide('name', props.name)
 
 <template>
   <div class="flex flex-col-reverse gap-1">
-    <span class="text-red-500">
-      {{ error }}
+    <span v-if="errors?.length" class="text-red-500">
+      {{ errors[0] }}
     </span>
     <slot />
     <label :for="name" class="text-xl peer-focus:text-primary-500">{{ label }}</label>

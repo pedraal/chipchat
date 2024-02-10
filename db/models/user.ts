@@ -14,17 +14,35 @@ export type UserDTO = z.infer<typeof userDTO>
 export type UserModel = User & BaseModel
 export class UserRepository extends BaseRepository<UserModel> {
   constructor() {
-    super('chatrooms')
-    this.collection.createIndex({ username: 1 })
+    super('users')
+    this.collection.createIndex({ username: 1 }, { unique: true })
   }
 
   async create(dto: UserDTO) {
-    const candidate = userDTO.parse(dto)
-    candidate.username = candidate.username.replaceAll(' ', '_')
+    dto.username = dto.username.replaceAll(' ', '_')
+
+    const userDTOWithUniqueUsername = userDTO.extend({
+      username: userDTO.shape.username.refine(async (username) => {
+        const user = await this.collection.findOne({ username })
+        if (user)
+          return false
+        return true
+      }, { message: 'Username already exists' }),
+    })
+
+    const candidate = await userDTOWithUniqueUsername.parseAsync(dto)
     const salt = bcrypt.genSaltSync(10)
     candidate.password = bcrypt.hashSync(candidate.password, salt)
     const document = this.initDocument({ ...candidate })
     await this.collection.insertOne(document)
     return document
+  }
+
+  async authenticate(dto: UserDTO) {
+    const user = await this.collection.findOne({ username: dto.username })
+    if (!user || !bcrypt.compareSync(dto.password, user.password))
+      throw new Error('Invalid username or password')
+
+    return user
   }
 }
