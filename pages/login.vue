@@ -7,6 +7,8 @@ definePageMeta({
 
 const username = ref('')
 const password = ref('')
+
+const route = useRoute()
 </script>
 
 <template>
@@ -15,9 +17,12 @@ const password = ref('')
       <h1 class="page-title mb-4">
         Login to ChipChat
       </h1>
-      <FormAuth action="/api/login">
+      <FormAuth action="/api/login" method="post">
+        <p v-if="route.query.error" class="text-red-500">
+          Login failed
+        </p>
         <FormGroup name="username" label="Username">
-          <FormInput v-model="username" type="text" autocomplete="username" />
+          <FormInput v-model="username" type="text" autocomplete="username" autofocus />
         </FormGroup>
         <FormGroup name="password" label="Password">
           <FormInput v-model="password" type="password" autocomplete="password" />
