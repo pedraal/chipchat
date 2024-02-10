@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+    env_file: .env
+    expose:
+      - 3000
+    networks:
+      - proxy
+      - datastore-network
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.services.chipchat-app.loadbalancer.server.port=3000
+      - traefik.http.routers.chipchat-app.service=chipchat-app@docker
+      - traefik.http.routers.chipchat-app.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.chipchat-app.entrypoints=web
+      - traefik.http.routers.chipchat-app.middlewares=redirect-https
+      - traefik.http.routers.chipchat-app-secured.service=chipchat-app@docker
+      - traefik.http.routers.chipchat-app-secured.entrypoints=web-secured
+      - traefik.http.routers.chipchat-app-secured.tls=true
+      - traefik.http.routers.chipchat-app-secured.rule=Host(`${APP_DOMAIN}`)
+
+networks:
+  proxy:
+    external: true
+  datastore-network:
+    external: true

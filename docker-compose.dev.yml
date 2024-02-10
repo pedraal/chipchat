@@ -1,0 +1,14 @@
+# Compose file used for local development dependencies
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0.1
+    ports:
+      - '27017:27017'
+    volumes:
+      - db-data:/data/db
+
+volumes:
+  db-data:
+    driver: local
