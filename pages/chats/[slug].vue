@@ -23,9 +23,13 @@ const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
 
-function leaveRoom() {
+function _leaveRoom() {
   if (socket.value)
-    socket.value.emit('leaveRoom')
+    socket.value.disconnect()
+}
+
+function leaveRoom() {
+  _leaveRoom()
 
   navigateTo('/chats')
 }
@@ -66,6 +70,10 @@ onMounted(() => {
     chatError.value = `You have been banned from ${room.value?.name || 'this chat'}`
     navigateTo('/chats')
   })
+})
+
+onBeforeUnmount(() => {
+  _leaveRoom()
 })
 
 function scrollToBottom() {

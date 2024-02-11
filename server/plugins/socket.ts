@@ -136,7 +136,6 @@ function startSocketServer(server: HttpServer) {
         return
 
       socket.leave(`room:${roomId}`)
-      socket.data.room.id = ''
       const users = await userRepository.findMany(room.connectedUserIds)
       io.to(`room:${roomId}`).emit('connectedUsers', users)
     }
