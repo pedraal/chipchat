@@ -4,13 +4,14 @@ import { type BaseModel, BaseRepository } from './base'
 
 export const chatRoom = z.object({
   name: z.string().min(3, 'Must be longer than 3 characters').max(20, 'Must be shorter than 20 characters').trim(),
+  slug: z.string(),
   adminId: z.string(),
   connectedUserIds: z.array(z.string()),
   bannedUserIds: z.array(z.string()),
 })
 export type ChatRoom = z.infer<typeof chatRoom>
 
-export const chatRoomDTO = z.object({ name: chatRoom.shape.name }).strict()
+export const chatRoomDTO = z.object({ name: chatRoom.shape.name, slug: chatRoom.shape.slug }).strict()
 export type ChatRoomDTO = z.infer<typeof chatRoomDTO>
 
 export type ChatRoomModel = ChatRoom & BaseModel
@@ -21,9 +22,19 @@ export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
     this.collection.createIndex({ name: 1 }, { unique: true })
   }
 
-  async create(adminId: string, dto: ChatRoomDTO) {
-    dto.name = dto.name.replaceAll(' ', '-')
+  slugify(name: string) {
+    return name.replaceAll(' ', '-').toLowerCase()
+  }
 
+  async findOrCreateOne(userId: string, name: string) {
+    const room = await this.collection.findOne({ slug: this.slugify(name) })
+    if (room)
+      return room
+
+    return await this.create(userId, { name, slug: this.slugify(name) })
+  }
+
+  async create(adminId: string, dto: ChatRoomDTO) {
     const chatRoomDTOWithUniqueName = chatRoomDTO.extend({
       name: chatRoomDTO.shape.name.refine(async (name) => {
         const chatRoom = await this.collection.findOne({ name })
@@ -34,13 +45,13 @@ export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
     })
 
     const candidate = await chatRoomDTOWithUniqueName.parseAsync(dto)
-    const document = this.initDocument({ ...candidate, adminId, bannedUserIds: [], connectedUserIds: [adminId] })
+    const document = this.initDocument({ ...candidate, adminId, bannedUserIds: [], connectedUserIds: [] })
     await this.collection.insertOne(document)
     return document as ChatRoomModel
   }
 
-  async joinOne(userId: string, name: string) {
-    const chatRoom = await this.collection.findOne({ name })
+  async joinOneBySlug(userId: string, slug: string) {
+    const chatRoom = await this.collection.findOne({ slug })
     if (!chatRoom)
       return null
     if (chatRoom.bannedUserIds.includes(userId))
@@ -48,7 +59,7 @@ export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
 
     if (!chatRoom.connectedUserIds.includes(userId)) {
       chatRoom.connectedUserIds.push(userId)
-      await this.collection.updateOne({ name }, { $push: { connectedUserIds: userId } })
+      await this.collection.updateOne({ slug }, { $push: { connectedUserIds: userId } })
     }
 
     return chatRoom

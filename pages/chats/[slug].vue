@@ -10,10 +10,12 @@ definePageMeta({
   layout: 'chat',
 })
 
+const route = useRoute()
+
 const { initSocket, socket } = useSocket()
 
-const roomName = ref('')
-const formError = ref<string[]>([])
+const { chatError } = useChat()
+
 const room = ref<ChatRoomModel>()
 const messages = ref<MessageModel[]>([])
 const connectedUsers = ref<SafeUserModel[]>([])
@@ -21,35 +23,11 @@ const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
 
-function joinRoom() {
-  if (roomName.value === '' || !socket.value)
-    return
-
-  socket.value.emit('joinRoom', roomName.value, (errors, data) => {
-    if (errors?.name) {
-      formError.value = errors.name._errors
-    }
-    else if (typeof errors === 'string') {
-      formError.value = [errors]
-    }
-    else if (data) {
-      roomName.value = ''
-      formError.value = []
-      room.value = data.room
-      connectedUsers.value = data.users
-      messages.value = data.messages.reverse()
-      scrollToBottom()
-    }
-  })
-}
-
 function leaveRoom() {
-  if (!socket.value)
-    return
+  if (socket.value)
+    socket.value.emit('leaveRoom')
 
-  socket.value.emit('leaveRoom')
-  room.value = undefined
-  messages.value = []
+  navigateTo('/chats')
 }
 
 function sendMessage() {
@@ -64,9 +42,16 @@ function sendMessage() {
 }
 
 onMounted(() => {
-  initSocket()
+  initSocket(route.params.slug as string)
 
-  socket.value?.on('roomUpdate', (users) => {
+  socket.value?.on('joinRoom', (_room, _connectedUsers, _messages) => {
+    room.value = _room
+    connectedUsers.value = _connectedUsers
+    messages.value = _messages.reverse()
+    scrollToBottom()
+  })
+
+  socket.value?.on('connectedUsers', (users) => {
     connectedUsers.value = users
   })
 
@@ -77,13 +62,9 @@ onMounted(() => {
       scrollToBottom()
   })
 
-  socket.value?.on('banned', (roomId) => {
-    if (!room.value || room.value.id !== roomId)
-      return
-
-    room.value = undefined
-    messages.value = []
-    formError.value = ['You have been banned from this room']
+  socket.value?.on('banned', () => {
+    chatError.value = `You have been banned from ${room.value?.name || 'this chat'}`
+    navigateTo('/chats')
   })
 })
 
@@ -117,24 +98,9 @@ function banUser() {
 </script>
 
 <template>
-  <div v-if="!room" class="h-full flex flex-col items-center justify-center p-4">
-    <div class="w-full px-4 mx-auto">
-      <h1 class="page-title mb-4">
-        Its time to join or create a chat room !
-      </h1>
-      <Form @submit.prevent="joinRoom">
-        <FormGroup name="roomName" label="Room name" :errors="formError">
-          <FormInput v-model="roomName" />
-        </FormGroup>
-        <template #submit>
-          Go !
-        </template>
-      </Form>
-    </div>
-  </div>
-  <div v-else class="h-full flex flex-col w-full gap-4 p-4">
+  <div v-if="room" class="h-full flex flex-col w-full gap-4 p-4">
     <div class="flex justify-between items-center gap-4">
-      <a href="#" class="nav-item" @click="leaveRoom">
+      <a href="#" class="nav-item" @click.prevent="leaveRoom">
         <Icon name="heroicons:arrow-left" class="w-6 h-6" />
       </a>
       <h1 class="page-title truncate">
@@ -181,7 +147,8 @@ function banUser() {
         You are the ruler of this chat room, you can ban this user if you want.<br> But remember:
       </p>
       <p class="italic text-xl text-center">
-        "with great power comes great responsibility" <Icon name="game-icons:spider-mask" />
+        "with great power comes great responsibility"
+        <Icon name="game-icons:spider-mask" />
       </p>
       <button class="btn btn-primary" @click="banUser">
         <Icon name="solar:sledgehammer-bold" class="w-5 h-5" />

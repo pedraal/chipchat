@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     const { setSessionWithJwt } = useSessionWithJwt()
     await setSessionWithJwt(user)
 
-    return sendRedirect(event, '/chat')
+    return sendRedirect(event, '/chats')
   }
   catch (error) {
     if (error instanceof ZodError)

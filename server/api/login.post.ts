@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     const user = await repo.authenticate({ username, password })
     const { setSessionWithJwt } = useSessionWithJwt()
     await setSessionWithJwt(user)
-    return sendRedirect(event, '/chat')
+    return sendRedirect(event, '/chats')
   }
   catch (error) {
     console.error(error)

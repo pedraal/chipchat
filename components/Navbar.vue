@@ -11,7 +11,7 @@ const { loggedIn, user } = useUserSession()
 
 <template>
   <nav class="flex items-center justify-between gap-4 p-4">
-    <NuxtLink :to="loggedIn ? '/chat' : '/'" class="nav-item flex items-center gap-1 text-xl">
+    <NuxtLink :to="loggedIn ? '/chats' : '/'" class="nav-item flex items-center gap-1 text-xl">
       <Icon name="fluent-emoji-high-contrast:potato" class="text-primary-400 dark:text-primary-600" />
       <span class="max-sm:hidden bg-gradient-to-r primary-gradient bg-clip-text text-transparent font-semibold">
         ChipChat

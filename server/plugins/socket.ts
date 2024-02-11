@@ -7,16 +7,16 @@ import { ChatRoomRepository } from '~/db/repositories/chatroom'
 import type { MessageModel } from '~/db/repositories/message'
 import { MessageRepository } from '~/db/repositories/message'
 import { UserRepository } from '~/db/repositories/user'
-import type { SafeUserModel, UserModel } from '~/db/repositories/user'
+import type { SafeUserModel } from '~/db/repositories/user'
 
 export interface ServerToClientEvents {
-  roomUpdate: (users: SafeUserModel[]) => void
+  joinRoom: (room: ChatRoomModel, users: SafeUserModel[], messages: MessageModel[]) => void
+  connectedUsers: (users: SafeUserModel[]) => void
   newMessage: (message: MessageModel) => void
   banned: (roomId: string) => void
 }
 
 export interface ClientToServerEvents {
-  joinRoom: (roomName: string, callback: (errors: any, roomAndMessages?: { room: ChatRoomModel, users: SafeUserModel[], messages: MessageModel[] }) => void) => void
   leaveRoom: () => void
   sendMessage: (contentId: string, callback: (errors: any) => void) => void
   banUser: (userId: string, callback: (errors: any) => void) => void
@@ -25,10 +25,10 @@ export interface ClientToServerEvents {
 interface SocketData {
   user: SafeUserModel
   user_id: string
-  currentRoomId: string
+  room: ChatRoomModel
 }
 
-export default defineNitroPlugin(async (nitro) => {
+export default defineNitroPlugin(async () => {
   const config = useRuntimeConfig()
   if (!config.socketPort)
     return
@@ -43,7 +43,12 @@ export default defineNitroPlugin(async (nitro) => {
     },
   })
 
-  io.use((socket, next) => {
+  const chatRoomRepository = new ChatRoomRepository()
+  const messageRepository = new MessageRepository()
+  const userRepository = new UserRepository()
+
+  // Authenticate user and join room
+  io.use(async (socket, next) => {
     const { decode } = useJwt()
     const { jwt } = socket.handshake.auth
     try {
@@ -54,8 +59,24 @@ export default defineNitroPlugin(async (nitro) => {
         throw new Error('Invalid JWT')
 
       socket.data.user = user
-      socket.data.user_id = user._id.toString()
-      socket.data.currentRoomId = ''
+      socket.data.user_id = user.id
+
+      const slug = socket.handshake.query.slug
+      if (!slug || typeof slug !== 'string')
+        throw new Error('Room slug missing')
+
+      const room = await chatRoomRepository.joinOneBySlug(user.id, slug)
+      if (!room)
+        throw new Error('Failed to join room')
+
+      const users = await userRepository.findMany(room.connectedUserIds)
+      const messages = await messageRepository.getRecentForRoom(room.id)
+
+      socket.data.room = room
+      socket.join(`room:${room.id}`)
+      socket.emit('joinRoom', room, users, messages)
+      io.to(`room:${room.id}`).emit('connectedUsers', users)
+      console.log(`[WS] user ${user.username} connected to room ${room.slug}`)
       next()
     }
     catch (error) {
@@ -63,42 +84,12 @@ export default defineNitroPlugin(async (nitro) => {
     }
   })
 
-  const chatRoomRepository = new ChatRoomRepository()
-  const messageRepository = new MessageRepository()
-  const userRepository = new UserRepository()
-
   io.on('connection', async (socket) => {
-    console.log(`[WS] client connected: ${socket.id}`)
-
-    socket.on('joinRoom', async (roomName, callback) => {
-      console.log(`[WS] client ${socket.data.user_id} joining room: ${roomName}`)
-      try {
-        let room = await chatRoomRepository.joinOne(socket.data.user_id, roomName)
-        if (!room)
-          room = await chatRoomRepository.create(socket.data.user_id, { name: roomName })
-        const users = await userRepository.findMany(room.connectedUserIds)
-        const messages = await messageRepository.getRecentForRoom(room._id.toString())
-
-        io.to(`room:${room._id.toString()}`).emit('roomUpdate', users)
-
-        socket.join(`room:${room._id.toString()}`)
-        socket.data.currentRoomId = room._id.toString()
-        callback(null, { room, users, messages })
-      }
-      catch (error) {
-        callback(formatError(error), undefined)
-      }
-    })
-
-    socket.on('leaveRoom', () => {
-      leaveRoom()
-    })
-
     socket.on('sendMessage', async (content, callback) => {
-      console.log(`[WS] client ${socket.data.user_id} sending message in room: ${socket.data.currentRoomId}`)
+      console.log(`[WS] client ${socket.data.user.username} sends message to room ${socket.data.room.slug}`)
       try {
-        const message = await messageRepository.create(socket.data.user, socket.data.currentRoomId, { content })
-        io.to(`room:${socket.data.currentRoomId}`).emit('newMessage', message)
+        const message = await messageRepository.create(socket.data.user, socket.data.room.id, { content })
+        io.to(`room:${socket.data.room.id}`).emit('newMessage', message)
         callback(null)
       }
       catch (error) {
@@ -107,23 +98,22 @@ export default defineNitroPlugin(async (nitro) => {
     })
 
     socket.on('banUser', async (userId, callback) => {
-      console.log(`[WS] client ${socket.data.user_id} banning user: ${userId} from room: ${socket.data.currentRoomId}`)
+      console.log(`[WS] client ${socket.data.user.username} banned ${userId} from room ${socket.data.room.slug}`)
       try {
-        const room = await chatRoomRepository.findOneAndBanUser(socket.data.user_id, socket.data.currentRoomId, userId)
+        const room = await chatRoomRepository.findOneAndBanUser(socket.data.user_id, socket.data.room.id, userId)
         if (!room)
           throw new Error('Failed to ban user')
         const users = await userRepository.findMany(room.connectedUserIds)
         const roomId = room._id.toString()
         io.in(`room:${roomId}`).fetchSockets().then((sockets) => {
           for (const socket of sockets) {
-            if (socket.data.user_id === userId && socket.data.currentRoomId === roomId) {
+            if (socket.data.user_id === userId && socket.data.room.id === roomId) {
               socket.leave(`room:${roomId}`)
-              socket.data.currentRoomId = ''
               socket.emit('banned', roomId)
             }
           }
         })
-        io.to(`room:${socket.data.currentRoomId}`).emit('roomUpdate', users)
+        io.to(`room:${socket.data.room.id}`).emit('connectedUsers', users)
         callback(null)
       }
       catch (error) {
@@ -131,24 +121,25 @@ export default defineNitroPlugin(async (nitro) => {
       }
     })
 
+    socket.on('leaveRoom', () => {
+      leaveRoom()
+    })
+
     socket.on('disconnect', async () => {
-      console.log(`[WS] client ${socket.data.user_id} disconnected`)
       leaveRoom()
     })
 
     async function leaveRoom() {
-      if (socket.data.currentRoomId === '')
-        return
-      const roomId = socket.data.currentRoomId
-      console.log(`[WS] client ${socket.data.user_id} leaving room: ${roomId}`)
+      const roomId = socket.data.room.id
+      console.log(`[WS] client ${socket.data.user.username} left room ${socket.data.room.slug}`)
       const room = await chatRoomRepository.leaveOne(socket.data.user_id, roomId)
       if (!room)
         return
 
       socket.leave(`room:${roomId}`)
-      socket.data.currentRoomId = ''
+      socket.data.room.id = ''
       const users = await userRepository.findMany(room.connectedUserIds)
-      io.to(`room:${roomId}`).emit('roomUpdate', users)
+      io.to(`room:${roomId}`).emit('connectedUsers', users)
     }
 
     function formatError(error: any) {
@@ -162,9 +153,4 @@ export default defineNitroPlugin(async (nitro) => {
   })
 
   console.log('[WS] server started.')
-
-  nitro.hooks.hook('close', () => {
-    io.close()
-    console.log('[WS] server closed.')
-  })
 })

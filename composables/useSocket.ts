@@ -8,17 +8,23 @@ export default function () {
 
   const socket = ref<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null)
 
-  function initSocket() {
+  const { chatError } = useChat()
+
+  function initSocket(slug: string) {
     if (!config.public.socketUrl || socket.value)
       return
     socket.value = io(config.public.socketUrl, {
       auth: {
         jwt: session.value.socketJwt,
       },
+      query: {
+        slug,
+      },
     })
 
     socket.value.on('connect_error', (error) => {
-      console.error('connect_error', error)
+      chatError.value = error.message
+      navigateTo('/chats')
     })
   }
 
