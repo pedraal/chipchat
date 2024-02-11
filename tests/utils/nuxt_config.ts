@@ -1,6 +1,3 @@
-import {
-  getPort,
-} from 'get-port-please'
 import type { NuxtConfig } from 'nuxt/schema'
 import type { MemoryDb } from './db'
 
@@ -10,18 +7,8 @@ interface TestNuxtConfigOptions {
 }
 
 export async function testNuxtConfig(options: TestNuxtConfigOptions) {
-  const socketPort = await getPort({ portRange: [4100, 4199] })
-
   const config: NuxtConfig = {
-    nitro: {
-      plugins: ['plugins/db.ts'],
-    },
-    runtimeConfig: {
-      socketPort,
-      public: {
-        socketUrl: `http://localhost:${socketPort}`,
-      },
-    },
+    runtimeConfig: {},
   }
 
   if (options.db) {

@@ -30,6 +30,8 @@ interface SocketData {
 
 export default defineNitroPlugin(async (nitro) => {
   const config = useRuntimeConfig()
+  if (!config.socketPort)
+    return
 
   // Workaround for nitro plugins not being loaded asynchronously
   await DbClient.waitConnection()
