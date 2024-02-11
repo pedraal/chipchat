@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     const { setSessionWithJwt } = useSessionWithJwt()
     await setSessionWithJwt(user)
 
-    return sendRedirect(event, '/')
+    return sendRedirect(event, '/chat')
   }
   catch (error) {
     console.error(error)
