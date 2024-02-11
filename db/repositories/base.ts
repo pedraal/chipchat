@@ -3,6 +3,7 @@ import { DbClient } from '../client'
 
 export interface BaseModel {
   _id: ObjectId
+  id: string
   createdAt: Date
   updatedAt: Date
 }
@@ -25,8 +26,11 @@ export class BaseRepository<Model extends BaseModel> {
   initDocument(object: any) {
     const now = new Date()
 
+    const _id = this.newId()
+
     return {
-      _id: this.newId(),
+      _id,
+      id: _id.toString(),
       createdAt: now,
       updatedAt: now,
       ...object,

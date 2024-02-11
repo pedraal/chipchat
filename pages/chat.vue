@@ -73,7 +73,7 @@ onMounted(() => {
   })
 
   socket.value?.on('banned', (roomId) => {
-    if (!room.value || `${room.value._id}` !== roomId)
+    if (!room.value || room.value.id !== roomId)
       return
 
     room.value = undefined
@@ -90,10 +90,10 @@ function scrollToBottom() {
 const inspectedUser = ref<Partial<UserModel> | undefined>()
 const { user } = useUserSession()
 
-const isAdmin = computed(() => room.value?.adminId === user.value._id)
+const isAdmin = computed(() => room.value?.adminId === user.value.id)
 
-function openUserModal(toInspect?: Partial<UserModel>) {
-  if (toInspect && isAdmin.value && toInspect._id !== user.value._id)
+function openUserModal(toInspect?: Omit<UserModel, 'password'>) {
+  if (toInspect && isAdmin.value && toInspect.id !== user.value.id)
     inspectedUser.value = toInspect
 }
 
@@ -101,7 +101,7 @@ function banUser() {
   if (!socket.value || !inspectedUser.value || !room.value)
     return
 
-  socket.value.emit('banUser', `${inspectedUser.value._id}`, (errors) => {
+  socket.value.emit('banUser', inspectedUser.value.id, (errors) => {
     if (errors)
       console.error(errors)
 
