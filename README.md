@@ -67,9 +67,8 @@ You can also run the test in the nuxt devtools within the Vitest tab when runnin
 - Better error handling.
 - Better testing, specially unit testing.
 - Better kick and ban system : possibility to unban users, removing/obfuscating targeted user messages.
-- My implementation of socket.io within the nitro server made testing hard which took me a lot of time without being able to complete that part in the time I had, I should look for a better implementation, the package https://github.com/wobsoriano/nuxt3-socket.io could have been a good candidate.
+- Use a proper socket.io implementation with nuxt/nitro. My 1st implementation of socket.io within the nitro server made testing hard, I've lost plenty time dealing with it. After giving a look at the [nuxt3-socket.io](https://github.com/wobsoriano/nuxt3-socket.io) module, I made a better one and it unlock the possibility to test the socket-based feature but it was already a bit late in the weekend.
 
 ### What would I've done if it was a real project
 - Use a component library like `nuxt/ui`.
 - Use a more robust authentication system, maybe something external like Auth0 or simplify Oauth providers.
-- Maybe split the socket server in a separate service decoupled of the main app. Nuxt 3 doesn't seem to be fully ready for this kind of usage (waiting for `unjs/crossws` package to be production ready).

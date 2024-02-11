@@ -5,7 +5,7 @@ import { $fetchToDom } from '../utils/dom'
 import { testNuxtConfig } from '../utils/nuxt_config'
 
 await setup({
-  nuxtConfig: await testNuxtConfig({ noSocket: true }),
+  nuxtConfig: await testNuxtConfig({ }),
 })
 
 beforeEach(() => {

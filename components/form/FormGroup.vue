@@ -10,7 +10,7 @@ provide('name', props.name)
 
 <template>
   <div class="flex flex-col-reverse gap-1">
-    <span v-if="errors?.length" class="text-red-500">
+    <span v-if="errors?.length" class="text-red-500" :data-testid="`${name}-error`">
       {{ errors[0] }}
     </span>
     <slot />
