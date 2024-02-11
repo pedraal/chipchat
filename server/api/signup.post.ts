@@ -6,7 +6,6 @@ export default defineEventHandler(async (event) => {
 
   const username = formData.get('username') as string
   const password = formData.get('password') as string
-  setCookie(event, 'formData', JSON.stringify({ username, password }))
 
   const repo = new UserRepository()
 

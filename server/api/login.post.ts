@@ -5,7 +5,6 @@ export default defineEventHandler(async (event) => {
 
   const username = formData.get('username') as string
   const password = formData.get('password') as string
-  setCookie(event, 'formData', JSON.stringify({ username, password }))
 
   const repo = new UserRepository()
 
@@ -13,7 +12,6 @@ export default defineEventHandler(async (event) => {
     const user = await repo.authenticate({ username, password })
     const { setSessionWithJwt } = useSessionWithJwt()
     await setSessionWithJwt(user)
-
     return sendRedirect(event, '/chat')
   }
   catch (error) {

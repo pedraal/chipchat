@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { $fetch, createPage, setup } from '@nuxt/test-utils/e2e'
+import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { $fetchToDom } from '../utils/dom'
+import { testNuxtConfig } from '../utils/nuxt_config'
 
-await setup({})
+await setup({
+  nuxtConfig: await testNuxtConfig({ noSocket: true }),
+})
+
 beforeEach(() => {
   consola.restoreConsole()
 })

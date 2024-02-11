@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest run --dir tests"
+    "test": "vitest run --dir tests",
+    "test:watch": "vitest watch --dir tests"
   },
   "dependencies": {
     "@vueuse/nuxt": "^10.7.2",
@@ -32,6 +33,7 @@
     "@vitest/ui": "^1.2.2",
     "@vue/test-utils": "^2.4.4",
     "eslint": "^8.56.0",
+    "get-port-please": "^3.1.2",
     "happy-dom": "^13.3.8",
     "mongodb-memory-server": "^9.1.6",
     "nuxt-auth-utils": "^0.0.15",

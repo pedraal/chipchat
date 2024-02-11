@@ -31,7 +31,7 @@ const route = useRoute()
           Login
         </template>
       </Form>
-      <NuxtLink to="/signup" class="text-center block mt-8">
+      <NuxtLink to="/signup" class="text-center block mt-8" data-testid="signup-link">
         Don't have an account? <span class="underline">Sign up</span>
       </nuxtlink>
     </div>

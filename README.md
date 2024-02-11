@@ -9,7 +9,7 @@
 - [x] Signup
 - [x] Login
 - [x] Admin (1st user) can kick users (i've implemented a ban system instead)
-- [ ] Tests
+- [x] Tests (partially done, cf the last item of the `What would I've done with more time` section)
 
 ## Setup
 
@@ -66,6 +66,7 @@ You can also run the test in the nuxt devtools within the Vitest tab when runnin
 - Better error handling.
 - Better testing, specially unit testing.
 - Better kick and ban system : possibility to unban users, removing/obfuscating targeted user messages.
+- My implementation of socket.io within the nitro server made testing hard which took me a lot of time without being able to complete that part in the time I had, I should look for a better implementation, the package https://github.com/wobsoriano/nuxt3-socket.io could have been a good candidate.
 
 ### What would I've done if it was a real project
 - Use a component library like `nuxt/ui`.

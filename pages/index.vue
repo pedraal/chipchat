@@ -22,7 +22,7 @@ definePageMeta({
       </div>
       <div class="relative group mt-8">
         <div class="absolute -inset-1 group-hover:blur-xl transition-all bg-gradient-to-r primary-gradient rounded-full blur-lg animate-tilt" />
-        <NuxtLink to="/login" class="relative px-7 py-4 body-bg rounded-full leading-none group-hover:text-primary-500" data-testid="main-login">
+        <NuxtLink to="/login" class="relative px-7 py-4 body-bg rounded-full leading-none group-hover:text-primary-500" data-testid="login-link">
           Signup or login
         </NuxtLink>
       </div>

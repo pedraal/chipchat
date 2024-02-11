@@ -21,7 +21,7 @@ useCookieFormData<typeof formData.value>(formData, ['username', 'password'])
 function validate(event: Event) {
   if (formData.value.password !== formData.value.passwordConfirmation) {
     event.preventDefault()
-    formData.value.errors.passwordConfirmation = ['Passwords do not match']
+    formData.value.errors.passwordConfirmation = ['Passwords don\'t match']
   }
 }
 </script>
@@ -30,7 +30,7 @@ function validate(event: Event) {
   <div class="grow flex items-center justify-center">
     <div class="w-full px-4 mx-auto">
       <h1 class="page-title mb-4">
-        Sign up to ChipChat
+        Signup to ChipChat
       </h1>
       <Form action="/api/signup" method="post" @submit="validate">
         <FormGroup name="username" label="Username" :errors="formData.errors.username">
