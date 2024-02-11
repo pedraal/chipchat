@@ -65,8 +65,8 @@ export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
     return chatRoom
   }
 
-  async leaveOne(userId: string, _id: string) {
-    return await this.collection.findOneAndUpdate({ _id: new ObjectId(_id) }, { $pull: { connectedUserIds: userId } }, { returnDocument: 'after' })
+  async leaveOne(userId: string, id: string) {
+    return await this.collection.findOneAndUpdate({ _id: new ObjectId(id) }, { $pull: { connectedUserIds: userId } }, { returnDocument: 'after' })
   }
 
   async findOneAndBanUser(adminId: string, roomId: string, userId: string) {

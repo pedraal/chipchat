@@ -20,7 +20,7 @@ afterEach(async () => {
 })
 
 await setup({
-  nuxtConfig: await testNuxtConfig({ noSocket: true, db }),
+  nuxtConfig: await testNuxtConfig({ db }),
 })
 
 describe('auth', () => {

@@ -20,11 +20,6 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     mongoUrl: 'mongodb://localhost:27017/chipchat',
-    socketPort: 4000,
-    origin: 'http://localhost:3000',
-    public: {
-      socketUrl: 'http://localhost:4000',
-    },
   },
   nitro: {
     experimental: {

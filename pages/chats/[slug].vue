@@ -23,9 +23,13 @@ const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
 
-function leaveRoom() {
+function _leaveRoom() {
   if (socket.value)
-    socket.value.emit('leaveRoom')
+    socket.value.disconnect()
+}
+
+function leaveRoom() {
+  _leaveRoom()
 
   navigateTo('/chats')
 }
@@ -66,6 +70,10 @@ onMounted(() => {
     chatError.value = `You have been banned from ${room.value?.name || 'this chat'}`
     navigateTo('/chats')
   })
+})
+
+onBeforeUnmount(() => {
+  _leaveRoom()
 })
 
 function scrollToBottom() {
@@ -112,7 +120,7 @@ function banUser() {
       <p class="mb-1">
         Online :
       </p>
-      <div class="flex max-sm:overflow-x-auto sm:flex-wrap sm:overflow-y-auto gap-2 py-2 max-h-24">
+      <div class="flex max-sm:overflow-x-auto sm:flex-wrap sm:overflow-y-auto gap-2 py-2 max-h-24" data-testid="connected-users">
         <div v-for="connectedUser in connectedUsers" :key="connectedUser.username" class="relative shrink-0" :class="[{ 'cursor-pointer': isAdmin && connectedUser.username !== user.username }]" @click="openUserModal(connectedUser)">
           <Icon v-if="`${connectedUser._id}` === room.adminId" name="heroicons:academic-cap-solid" class="text-primary-400 absolute -top-3 -right-2 h-6 w-6 rotate-12" />
           <UserTag :username="connectedUser.username" />
@@ -120,18 +128,18 @@ function banUser() {
       </div>
     </div>
     <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/5 rounded-lg">
-      <div v-for="message in messages" :key="`${message._id}`" class="flex flex-col gap-1 p-2">
-        <div>
+      <div v-for="message in messages" :key="`${message._id}`" class="flex flex-col gap-1 p-2" data-testid="message">
+        <div data-testid="message-user">
           <UserTag :username="message.username" :class="[{ 'cursor-pointer': isAdmin && message.username !== user.username }]" @click="openUserModal(connectedUsers.find(u => u.id === message.userId))" />
         </div>
-        <p>
+        <p data-testid="message-content">
           {{ message.content }}
         </p>
       </div>
     </div>
     <form class="flex gap-2" @submit.prevent="sendMessage">
       <FormInput v-model="newMessage" class="w-full" placeholder="Type your message here" />
-      <button class="bg-primary-500 hover:bg-primary-600 transition-colors w-8 flex items-center justify-center rounded-lg text-white" type="submit">
+      <button class="bg-primary-500 hover:bg-primary-600 transition-colors w-8 flex items-center justify-center rounded-lg text-white" type="submit" data-testid="submit">
         <Icon name="heroicons:paper-airplane" class="w-6 h-6" />
       </button>
     </form>
@@ -150,11 +158,11 @@ function banUser() {
         "with great power comes great responsibility"
         <Icon name="game-icons:spider-mask" />
       </p>
-      <button class="btn btn-primary" @click="banUser">
+      <button class="btn btn-primary" data-testid="ban-button" @click="banUser">
         <Icon name="solar:sledgehammer-bold" class="w-5 h-5" />
         Slam the ban hammer
       </button>
-      <button class="btn btn-secondary" @click="inspectedUser = undefined">
+      <button class="btn btn-secondary" data-testid="close-inspect-modal" @click="inspectedUser = undefined">
         Close
       </button>
     </div>
