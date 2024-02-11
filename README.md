@@ -56,6 +56,7 @@ You can also run the test in the nuxt devtools within the Vitest tab when runnin
 - Saturday morning : Little bit of refactoring / small fixes
 - Saturday afternoon : Chat room features (I consider the app to be feature complete and I could have stop here)
 - Sunday morning : Little bit of refactoring / small fixes
+- Sunday afternoon : Add some tests
 
 ### What would I've done with more time
 - Implement a mailing service for the auth process (email confirmation, password reset etc.).
