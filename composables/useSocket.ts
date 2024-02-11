@@ -20,6 +20,12 @@ export default function () {
       query: {
         slug,
       },
+      reconnection: false,
+    })
+
+    socket.value.on('disconnect', () => {
+      chatError.value = 'Disconnected from the chat room'
+      navigateTo('/chats')
     })
 
     socket.value.on('connect_error', (error) => {
