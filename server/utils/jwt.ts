@@ -1,14 +1,14 @@
 import jwt from 'jsonwebtoken'
-import type { UserModel } from '~/db/repositories/user'
+import type { SafeUserModel } from '~/db/repositories/user'
 
 export function useJwt() {
   const config = useRuntimeConfig()
-  function sign(user: UserModel) {
+  function sign(user: SafeUserModel) {
     return jwt.sign(user, config.session.password, { expiresIn: '365d' })
   }
 
   function decode(token: string) {
-    return jwt.verify(token, config.session.password) as UserModel
+    return jwt.verify(token, config.session.password) as SafeUserModel
   }
 
   return {

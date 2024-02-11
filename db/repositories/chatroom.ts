@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { ObjectId } from 'mongodb'
 import { type BaseModel, BaseRepository } from './base'
-import { type UserModel, UserRepository } from './user'
 
 export const chatRoom = z.object({
   name: z.string().min(3, 'Must be longer than 3 characters').max(20, 'Must be shorter than 20 characters').trim(),
@@ -15,8 +14,6 @@ export const chatRoomDTO = z.object({ name: chatRoom.shape.name }).strict()
 export type ChatRoomDTO = z.infer<typeof chatRoomDTO>
 
 export type ChatRoomModel = ChatRoom & BaseModel
-
-export type PopulatedChatRoom = ChatRoomModel & { connectedUsers: Omit<UserModel, 'password'>[] }
 
 export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
   constructor() {
@@ -59,12 +56,6 @@ export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
 
   async leaveOne(userId: string, _id: string) {
     return await this.collection.findOneAndUpdate({ _id: new ObjectId(_id) }, { $pull: { connectedUserIds: userId } }, { returnDocument: 'after' })
-  }
-
-  async populateUsers(chatRoom: ChatRoomModel) {
-    const userRepo = new UserRepository()
-    const connectedUsers = await userRepo.findMany(chatRoom.connectedUserIds)
-    return { ...chatRoom, connectedUsers }
   }
 
   async findOneAndBanUser(adminId: string, roomId: string, userId: string) {

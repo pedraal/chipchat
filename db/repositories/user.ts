@@ -13,6 +13,7 @@ export const userDTO = z.object({ username: user.shape.username, password: user.
 export type UserDTO = z.infer<typeof userDTO>
 
 export type UserModel = User & BaseModel
+export type SafeUserModel = Omit<UserModel, 'password'>
 export class UserRepository extends BaseRepository<UserModel> {
   constructor() {
     super('users')
@@ -47,7 +48,7 @@ export class UserRepository extends BaseRepository<UserModel> {
     return user
   }
 
-  async findMany(ids: string[]): Promise<Omit<UserModel, 'password'>[]> {
+  async findMany(ids: string[]): Promise<SafeUserModel[]> {
     return await this.collection.find({ _id: { $in: ids.map(id => new ObjectId(id)) } }, { projection: { password: 0 } }).toArray()
   }
 }

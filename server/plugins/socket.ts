@@ -2,27 +2,28 @@
 import { Server } from 'socket.io'
 import { ZodError } from 'zod'
 import { DbClient } from '~/db/client'
-import type { PopulatedChatRoom } from '~/db/repositories/chatroom'
+import type { ChatRoomModel } from '~/db/repositories/chatroom'
 import { ChatRoomRepository } from '~/db/repositories/chatroom'
 import type { MessageModel } from '~/db/repositories/message'
 import { MessageRepository } from '~/db/repositories/message'
-import type { UserModel } from '~/db/repositories/user'
+import { UserRepository } from '~/db/repositories/user'
+import type { SafeUserModel, UserModel } from '~/db/repositories/user'
 
 export interface ServerToClientEvents {
-  roomUpdate: (room: PopulatedChatRoom) => void
+  roomUpdate: (users: SafeUserModel[]) => void
   newMessage: (message: MessageModel) => void
   banned: (roomId: string) => void
 }
 
 export interface ClientToServerEvents {
-  joinRoom: (roomName: string, callback: (errors: any, roomAndMessages?: { room: PopulatedChatRoom, messages: MessageModel[] }) => void) => void
+  joinRoom: (roomName: string, callback: (errors: any, roomAndMessages?: { room: ChatRoomModel, users: SafeUserModel[], messages: MessageModel[] }) => void) => void
   leaveRoom: () => void
   sendMessage: (contentId: string, callback: (errors: any) => void) => void
   banUser: (userId: string, callback: (errors: any) => void) => void
 }
 
 interface SocketData {
-  user: UserModel
+  user: SafeUserModel
   user_id: string
   currentRoomId: string
 }
@@ -62,6 +63,7 @@ export default defineNitroPlugin(async (nitro) => {
 
   const chatRoomRepository = new ChatRoomRepository()
   const messageRepository = new MessageRepository()
+  const userRepository = new UserRepository()
 
   io.on('connection', async (socket) => {
     console.log(`[WS] client connected: ${socket.id}`)
@@ -72,12 +74,14 @@ export default defineNitroPlugin(async (nitro) => {
         let room = await chatRoomRepository.joinOne(socket.data.user_id, roomName)
         if (!room)
           room = await chatRoomRepository.create(socket.data.user_id, { name: roomName })
+        const users = await userRepository.findMany(room.connectedUserIds)
+        const messages = await messageRepository.getRecentForRoom(room._id.toString())
+
+        io.to(`room:${room._id.toString()}`).emit('roomUpdate', users)
+
         socket.join(`room:${room._id.toString()}`)
         socket.data.currentRoomId = room._id.toString()
-        const roomWithUsers = await chatRoomRepository.populateUsers(room)
-        const messages = await messageRepository.getRecentForRoom(room._id.toString())
-        io.to(`room:${room._id.toString()}`).emit('roomUpdate', roomWithUsers)
-        callback(null, { room: roomWithUsers, messages })
+        callback(null, { room, users, messages })
       }
       catch (error) {
         callback(formatError(error), undefined)
@@ -106,7 +110,7 @@ export default defineNitroPlugin(async (nitro) => {
         const room = await chatRoomRepository.findOneAndBanUser(socket.data.user_id, socket.data.currentRoomId, userId)
         if (!room)
           throw new Error('Failed to ban user')
-        const roomWithUsers = await chatRoomRepository.populateUsers(room)
+        const users = await userRepository.findMany(room.connectedUserIds)
         const roomId = room._id.toString()
         io.in(`room:${roomId}`).fetchSockets().then((sockets) => {
           for (const socket of sockets) {
@@ -117,7 +121,7 @@ export default defineNitroPlugin(async (nitro) => {
             }
           }
         })
-        io.to(`room:${socket.data.currentRoomId}`).emit('roomUpdate', roomWithUsers)
+        io.to(`room:${socket.data.currentRoomId}`).emit('roomUpdate', users)
         callback(null)
       }
       catch (error) {
@@ -141,8 +145,8 @@ export default defineNitroPlugin(async (nitro) => {
 
       socket.leave(`room:${roomId}`)
       socket.data.currentRoomId = ''
-      const roomWithUsers = await chatRoomRepository.populateUsers(room)
-      io.to(`room:${roomId}`).emit('roomUpdate', roomWithUsers)
+      const users = await userRepository.findMany(room.connectedUserIds)
+      io.to(`room:${roomId}`).emit('roomUpdate', users)
     }
 
     function formatError(error: any) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { PopulatedChatRoom } from '~/db/repositories/chatroom'
+import type { ChatRoomModel } from '~/db/repositories/chatroom'
 import type { MessageModel } from '~/db/repositories/message'
-import type { UserModel } from '~/db/repositories/user'
+import type { SafeUserModel } from '~/db/repositories/user'
 
 definePageMeta({
   middleware: [
@@ -14,8 +14,9 @@ const { initSocket, socket } = useSocket()
 
 const roomName = ref('')
 const roomNameError = ref<string[]>([])
-const room = ref<PopulatedChatRoom>()
+const room = ref<ChatRoomModel>()
 const messages = ref<MessageModel[]>([])
+const connectedUsers = ref<SafeUserModel[]>([])
 const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
@@ -61,8 +62,8 @@ function sendMessage() {
 onMounted(() => {
   initSocket()
 
-  socket.value?.on('roomUpdate', (_room) => {
-    room.value = _room
+  socket.value?.on('roomUpdate', (users) => {
+    connectedUsers.value = users
   })
 
   socket.value?.on('newMessage', (message) => {
@@ -87,12 +88,12 @@ function scrollToBottom() {
   })
 }
 
-const inspectedUser = ref<Partial<UserModel> | undefined>()
+const inspectedUser = ref<SafeUserModel | undefined>()
 const { user } = useUserSession()
 
 const isAdmin = computed(() => room.value?.adminId === user.value.id)
 
-function openUserModal(toInspect?: Omit<UserModel, 'password'>) {
+function openUserModal(toInspect?: SafeUserModel) {
   if (toInspect && isAdmin.value && toInspect.id !== user.value.id)
     inspectedUser.value = toInspect
 }
@@ -141,7 +142,7 @@ function banUser() {
         Online :
       </p>
       <div class="flex max-sm:overflow-x-auto sm:flex-wrap sm:overflow-y-auto gap-2 py-2 max-h-24">
-        <div v-for="connectedUser in room.connectedUsers" :key="connectedUser.username" class="relative shrink-0" :class="[{ 'cursor-pointer': isAdmin && connectedUser.username !== user.username }]" @click="openUserModal(connectedUser)">
+        <div v-for="connectedUser in connectedUsers" :key="connectedUser.username" class="relative shrink-0" :class="[{ 'cursor-pointer': isAdmin && connectedUser.username !== user.username }]" @click="openUserModal(connectedUser)">
           <Icon v-if="`${connectedUser._id}` === room.adminId" name="heroicons:academic-cap-solid" class="text-primary-400 absolute -top-3 -right-2 h-6 w-6 rotate-12" />
           <UserTag :username="connectedUser.username" />
         </div>
@@ -150,7 +151,7 @@ function banUser() {
     <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/5 rounded-lg">
       <div v-for="message in messages" :key="`${message._id}`" class="flex flex-col gap-1 p-2">
         <div>
-          <UserTag :username="message.username" :class="[{ 'cursor-pointer': isAdmin && message.username !== user.username }]" @click="openUserModal(room.connectedUsers.find(u => `${u._id}` === message.userId))" />
+          <UserTag :username="message.username" :class="[{ 'cursor-pointer': isAdmin && message.username !== user.username }]" @click="openUserModal(connectedUsers.find(u => u.id === message.userId))" />
         </div>
         <p>
           {{ message.content }}

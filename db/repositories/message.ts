@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { type BaseModel, BaseRepository } from './base'
-import type { UserModel } from './user'
+import type { SafeUserModel } from './user'
 
 export const message = z.object({
   userId: z.string(),
@@ -21,7 +21,7 @@ export class MessageRepository extends BaseRepository<MessageModel> {
     this.collection.createIndex({ chatRoomId: 1 }, { unique: false })
   }
 
-  async create(user: UserModel, chatRoomId: string, dto: MessageDTO) {
+  async create(user: SafeUserModel, chatRoomId: string, dto: MessageDTO) {
     const candidate = messageDTO.parse(dto)
     const document = this.initDocument({ ...candidate, userId: user._id.toString(), username: user.username, chatRoomId })
     await this.collection.insertOne(document)
