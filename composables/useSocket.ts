@@ -3,7 +3,6 @@ import { io } from 'socket.io-client'
 import type { ClientToServerEvents, ServerToClientEvents } from '~/server/plugins/socket'
 
 export default function () {
-  const config = useRuntimeConfig()
   const { session } = useUserSession()
 
   const socket = ref<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null)
@@ -11,9 +10,9 @@ export default function () {
   const { chatError } = useChat()
 
   function initSocket(slug: string) {
-    if (!config.public.socketUrl || socket.value)
+    if (socket.value)
       return
-    socket.value = io(config.public.socketUrl, {
+    socket.value = io({
       auth: {
         jwt: session.value.socketJwt,
       },

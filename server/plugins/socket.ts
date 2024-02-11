@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
+import type { Server as HttpServer } from 'node:http'
 import { Server } from 'socket.io'
 import { ZodError } from 'zod'
-import { DbClient } from '~/db/client'
 import type { ChatRoomModel } from '~/db/repositories/chatroom'
 import { ChatRoomRepository } from '~/db/repositories/chatroom'
 import type { MessageModel } from '~/db/repositories/message'
@@ -9,6 +9,17 @@ import { MessageRepository } from '~/db/repositories/message'
 import { UserRepository } from '~/db/repositories/user'
 import type { SafeUserModel } from '~/db/repositories/user'
 
+export default defineNitroPlugin(async (nitro) => {
+  let ioInitialized = false
+  // Approach inspired from https://github.com/wobsoriano/nuxt3-socket.io
+  // Would definetly be wiser to directly use this module in the future
+  nitro.hooks.hook('request', async (event) => {
+    if (!ioInitialized) {
+      startSocketServer((event.node.req.socket as any).server as HttpServer)
+      ioInitialized = true
+    }
+  })
+})
 export interface ServerToClientEvents {
   joinRoom: (room: ChatRoomModel, users: SafeUserModel[], messages: MessageModel[]) => void
   connectedUsers: (users: SafeUserModel[]) => void
@@ -28,20 +39,8 @@ interface SocketData {
   room: ChatRoomModel
 }
 
-export default defineNitroPlugin(async () => {
-  const config = useRuntimeConfig()
-  if (!config.socketPort)
-    return
-
-  // Workaround for nitro plugins not being loaded asynchronously
-  await DbClient.waitConnection()
-
-  const io = new Server<ClientToServerEvents, ServerToClientEvents, never, SocketData>(config.socketPort, {
-    cors: {
-      origin: config.origin,
-      credentials: true,
-    },
-  })
+function startSocketServer(server: HttpServer) {
+  const io = new Server<ClientToServerEvents, ServerToClientEvents, never, SocketData>(server, {})
 
   const chatRoomRepository = new ChatRoomRepository()
   const messageRepository = new MessageRepository()
@@ -153,4 +152,4 @@ export default defineNitroPlugin(async () => {
   })
 
   console.log('[WS] server started.')
-})
+}
