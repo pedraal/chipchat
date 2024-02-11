@@ -64,7 +64,8 @@ You can also run the test in the nuxt devtools within the Vitest tab when runnin
 - Use an ORM for the database but I wanted to try this approach of raw mongodb driver + zod + ts in a kind off repository structure.
 - Better logging system.
 - Better error handling.
-- Better testing, specially component unit testing.
+- Better testing, specially unit testing.
+- Better kick and ban system : possibility to unban users, removing/obfuscating targeted user messages.
 
 ### What would I've done if it was a real project
 - Use a component library like `nuxt/ui`.

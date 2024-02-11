@@ -13,7 +13,7 @@ definePageMeta({
 const { initSocket, socket } = useSocket()
 
 const roomName = ref('')
-const roomNameError = ref<string[]>([])
+const formError = ref<string[]>([])
 const room = ref<ChatRoomModel>()
 const messages = ref<MessageModel[]>([])
 const connectedUsers = ref<SafeUserModel[]>([])
@@ -27,12 +27,16 @@ function joinRoom() {
 
   socket.value.emit('joinRoom', roomName.value, (errors, data) => {
     if (errors?.name) {
-      roomNameError.value = errors.name._errors
+      formError.value = errors.name._errors
+    }
+    else if (typeof errors === 'string') {
+      formError.value = [errors]
     }
     else if (data) {
       roomName.value = ''
-      roomNameError.value = []
+      formError.value = []
       room.value = data.room
+      connectedUsers.value = data.users
       messages.value = data.messages.reverse()
       scrollToBottom()
     }
@@ -79,6 +83,7 @@ onMounted(() => {
 
     room.value = undefined
     messages.value = []
+    formError.value = ['You have been banned from this room']
   })
 })
 
@@ -118,7 +123,7 @@ function banUser() {
         Its time to join or create a chat room !
       </h1>
       <Form @submit.prevent="joinRoom">
-        <FormGroup name="roomName" label="Room name" :errors="roomNameError">
+        <FormGroup name="roomName" label="Room name" :errors="formError">
           <FormInput v-model="roomName" />
         </FormGroup>
         <template #submit>
