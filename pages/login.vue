@@ -17,7 +17,7 @@ const route = useRoute()
       <h1 class="page-title mb-4">
         Login to ChipChat
       </h1>
-      <FormAuth action="/api/login" method="post">
+      <Form action="/api/login" method="post">
         <p v-if="route.query.error" class="text-red-500">
           Login failed
         </p>
@@ -30,7 +30,7 @@ const route = useRoute()
         <template #submit>
           Login
         </template>
-      </FormAuth>
+      </Form>
       <NuxtLink to="/signup" class="text-center block mt-8">
         Don't have an account? <span class="underline">Sign up</span>
       </nuxtlink>

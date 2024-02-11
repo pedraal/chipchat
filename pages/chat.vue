@@ -116,14 +116,14 @@ function banUser() {
       <h1 class="page-title mb-4">
         Its time to join or create a chat room !
       </h1>
-      <FormAuth @submit.prevent="joinRoom">
+      <Form @submit.prevent="joinRoom">
         <FormGroup name="roomName" label="Room name" :errors="roomNameError">
           <FormInput v-model="roomName" />
         </FormGroup>
         <template #submit>
           Go !
         </template>
-      </FormAuth>
+      </Form>
     </div>
   </div>
   <div v-else class="h-full flex flex-col w-full gap-4 p-4">
