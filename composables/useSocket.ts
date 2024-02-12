@@ -7,29 +7,15 @@ export default function () {
 
   const socket = ref<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null)
 
-  const { chatError } = useChat()
-
-  function initSocket(slug: string) {
+  function initSocket(query: Record<string, any>) {
     if (socket.value)
       return
     socket.value = io({
       auth: {
         jwt: session.value.socketJwt,
       },
-      query: {
-        slug,
-      },
+      query,
       reconnection: false,
-    })
-
-    socket.value.on('disconnect', () => {
-      chatError.value = 'Disconnected from the chat room'
-      navigateTo('/chats')
-    })
-
-    socket.value.on('connect_error', (error) => {
-      chatError.value = error.message
-      navigateTo('/chats')
     })
   }
 

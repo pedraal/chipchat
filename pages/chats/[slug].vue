@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { z } from 'zod'
 import type { ChatRoomModel } from '~/db/repositories/chatroom'
 import type { MessageModel } from '~/db/repositories/message'
 import type { SafeUserModel } from '~/db/repositories/user'
@@ -23,17 +24,6 @@ const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
 
-function _leaveRoom() {
-  if (socket.value)
-    socket.value.disconnect()
-}
-
-function leaveRoom() {
-  _leaveRoom()
-  chatError.value = ''
-  navigateTo('/chats')
-}
-
 function sendMessage() {
   if (!socket.value || !room.value || newMessage.value === '' || sending.value)
     return
@@ -45,8 +35,27 @@ function sendMessage() {
   })
 }
 
+const paramsSchema = z.object({
+  slug: z.string(),
+})
+
+const validParams = computed(() => {
+  try {
+    return paramsSchema.parse(route.params)
+  }
+  catch (e) {
+    return null
+  }
+})
+
 onMounted(() => {
-  initSocket(route.params.slug as string)
+  if (!validParams.value) {
+    chatError.value = 'Invalid chat room'
+    navigateTo('/chats')
+    return
+  }
+
+  initSocket({ ...validParams.value })
 
   socket.value?.on('joinRoom', (_room, _connectedUsers, _messages) => {
     room.value = _room
@@ -70,10 +79,22 @@ onMounted(() => {
     chatError.value = `You have been banned from ${room.value?.name || 'this chat'}`
     navigateTo('/chats')
   })
+
+  socket.value?.on('disconnect', (reason) => {
+    if (reason !== 'io client disconnect')
+      chatError.value = 'Disconnected from the chat room'
+    navigateTo('/chats')
+  })
+
+  socket.value?.on('connect_error', (error) => {
+    chatError.value = error.message
+    navigateTo('/chats')
+  })
 })
 
 onBeforeUnmount(() => {
-  _leaveRoom()
+  if (socket.value?.connected)
+    socket.value.disconnect()
 })
 
 function scrollToBottom() {
@@ -108,9 +129,9 @@ function banUser() {
 <template>
   <div v-if="room" class="h-full flex flex-col w-full gap-4 p-4">
     <div class="flex justify-between items-center gap-4">
-      <a href="#" class="nav-item" @click.prevent="leaveRoom">
+      <NuxtLink to="/chats" class="nav-item">
         <Icon name="heroicons:arrow-left" class="w-6 h-6" />
-      </a>
+      </NuxtLink>
       <h1 class="page-title truncate">
         # {{ room.name }}
       </h1>
