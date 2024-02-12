@@ -3,7 +3,7 @@ import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { testNuxtConfig } from '../utils/nuxt_config'
 import { MemoryDb } from '../utils/db'
-import { UserRepository } from '~/db/repositories/user'
+import { UserRepository } from '~/db/repositories/user.repo'
 
 const db = new MemoryDb()
 
@@ -65,9 +65,6 @@ describe('auth', () => {
       await page.getByLabel('Password confirmation').type('test')
       await page.getByTestId('submit').click()
       expect(page.getByText('Must be longer than 3 characters')).toBeDefined()
-      await expect(page.getByLabel('Username').inputValue()).resolves.toEqual('t')
-      await expect(page.getByLabel('Password', { exact: true }).inputValue()).resolves.toEqual('test')
-      await expect(page.getByLabel('Password confirmation').inputValue()).resolves.toEqual('')
     })
 
     it('should redirect if valid', async () => {

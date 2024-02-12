@@ -1,29 +1,42 @@
 <script lang="ts" setup>
+import { userDTO } from '~/db/dto/user.dto'
+
 definePageMeta({
   middleware: [
     'guest',
   ],
 })
 
-const formData = useState('signupFormData', () => ({
+const formData = reactive({
   username: '',
   password: '',
   passwordConfirmation: '',
-  errors: {
-    username: [] as string[],
-    password: [] as string[],
-    passwordConfirmation: [] as string[],
-  },
-}))
+})
 
-useCookieFormData<typeof formData.value>(formData, ['username', 'password'])
+const formErrors = reactive({
+  username: [] as string[],
+  password: [] as string[],
+  passwordConfirmation: [] as string[],
+})
 
 function validate(event: Event) {
-  if (formData.value.password !== formData.value.passwordConfirmation) {
+  const userDTOWithPasswordConfirmation = userDTO.extend({
+    passwordConfirmation: userDTO.shape.password.refine((confirmation) => {
+      return confirmation === formData.password
+    }, { message: 'Passwords don\'t match' }),
+  })
+
+  const result = userDTOWithPasswordConfirmation.safeParse(formData)
+  if (!result.success) {
     event.preventDefault()
-    formData.value.errors.passwordConfirmation = ['Passwords don\'t match']
+    const formattedError = result.error.format()
+    formErrors.username = formattedError.username?._errors || []
+    formErrors.password = formattedError.password?._errors || []
+    formErrors.passwordConfirmation = formattedError.passwordConfirmation?._errors || []
   }
 }
+
+const route = useRoute()
 </script>
 
 <template>
@@ -33,13 +46,16 @@ function validate(event: Event) {
         Signup to ChipChat
       </h1>
       <Form action="/api/signup" method="post" @submit="validate">
-        <FormGroup name="username" label="Username" :errors="formData.errors.username">
+        <p v-if="route.query.error" class="text-red-500">
+          Login failed
+        </p>
+        <FormGroup name="username" label="Username" :errors="formErrors.username">
           <FormInput v-model="formData.username" type="text" autocomplete="username" autofocus />
         </FormGroup>
-        <FormGroup name="password" label="Password" :errors="formData.errors.password">
+        <FormGroup name="password" label="Password" :errors="formErrors.password">
           <FormInput v-model="formData.password" type="password" autocomplete="new-password" />
         </FormGroup>
-        <FormGroup name="passwordConfirmation" label="Password Confirmation" :errors="formData.errors.passwordConfirmation">
+        <FormGroup name="passwordConfirmation" label="Password Confirmation" :errors="formErrors.passwordConfirmation">
           <FormInput v-model="formData.passwordConfirmation" type="password" autocomplete="new-password" />
         </FormGroup>
         <template #submit>

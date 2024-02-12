@@ -1,4 +1,4 @@
-import { UserRepository } from '~/db/repositories/user'
+import { UserRepository } from '~/db/repositories/user.repo'
 
 export default defineEventHandler(async (event) => {
   const formData = await readFormData(event)
@@ -15,8 +15,6 @@ export default defineEventHandler(async (event) => {
     return sendRedirect(event, '/chats')
   }
   catch (error) {
-    console.error(error)
-    setCookie(event, 'formData', JSON.stringify({ username, password }))
     return sendRedirect(event, '/login?error=true')
   }
 })

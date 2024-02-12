@@ -1,5 +1,4 @@
-import { ZodError } from 'zod'
-import { UserRepository } from '~/db/repositories/user'
+import { UserRepository } from '~/db/repositories/user.repo'
 
 export default defineEventHandler(async (event) => {
   const formData = await readFormData(event)
@@ -17,12 +16,6 @@ export default defineEventHandler(async (event) => {
     return sendRedirect(event, '/chats')
   }
   catch (error) {
-    if (error instanceof ZodError)
-      setCookie(event, 'formErrors', JSON.stringify(error.format()))
-    else
-      console.error(error)
-
-    setCookie(event, 'formData', JSON.stringify({ username, password }))
-    return sendRedirect(event, '/signup')
+    return sendRedirect(event, '/signup?error=true')
   }
 })

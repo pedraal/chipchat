@@ -1,8 +1,8 @@
 import { ZodError } from 'zod'
 import { H3Error } from 'h3'
-import type { ChatRoomDTO } from '~/db/repositories/chatroom'
-import { ChatRoomRepository } from '~/db/repositories/chatroom'
-import type { SafeUserModel } from '~/db/repositories/user'
+import { ChatRoomRepository } from '~/db/repositories/chatroom.repo'
+import type { SafeUserModel } from '~/db/repositories/user.repo'
+import type { ChatRoomDTO } from '~/db/dto/chatroom.dto'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)

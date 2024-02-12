@@ -4,9 +4,9 @@ import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { testNuxtConfig } from '../utils/nuxt_config'
 import { MemoryDb } from '../utils/db'
-import { type UserModel, UserRepository } from '~/db/repositories/user'
-import { ChatRoomRepository } from '~/db/repositories/chatroom'
-import { MessageRepository } from '~/db/repositories/message'
+import { type UserModel, UserRepository } from '~/db/repositories/user.repo'
+import { ChatRoomRepository } from '~/db/repositories/chatroom.repo'
+import { MessageRepository } from '~/db/repositories/message.repo'
 
 const db = new MemoryDb()
 

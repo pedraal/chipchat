@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import type { SafeUserModel } from '~/db/repositories/user'
+import type { SafeUserModel } from '~/db/repositories/user.repo'
 
 export function useJwt() {
   const config = useRuntimeConfig()

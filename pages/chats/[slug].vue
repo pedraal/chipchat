@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
-import type { ChatRoomModel } from '~/db/repositories/chatroom'
-import type { MessageModel } from '~/db/repositories/message'
-import type { SafeUserModel } from '~/db/repositories/user'
+import type { ChatRoomModel } from '~/db/repositories/chatroom.repo'
+import type { MessageModel } from '~/db/repositories/message.repo'
+import type { SafeUserModel } from '~/db/repositories/user.repo'
 
 definePageMeta({
   middleware: [

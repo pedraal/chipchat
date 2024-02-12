@@ -1,4 +1,4 @@
-import type { UserModel } from '~/db/repositories/user'
+import type { UserModel } from '~/db/repositories/user.repo'
 
 export function useSessionWithJwt() {
   async function setSessionWithJwt(user: UserModel) {

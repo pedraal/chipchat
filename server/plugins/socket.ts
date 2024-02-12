@@ -2,12 +2,12 @@
 import type { Server as HttpServer } from 'node:http'
 import { Server } from 'socket.io'
 import { ZodError } from 'zod'
-import type { ChatRoomModel } from '~/db/repositories/chatroom'
-import { ChatRoomRepository } from '~/db/repositories/chatroom'
-import type { MessageModel } from '~/db/repositories/message'
-import { MessageRepository } from '~/db/repositories/message'
-import { UserRepository } from '~/db/repositories/user'
-import type { SafeUserModel } from '~/db/repositories/user'
+import type { ChatRoomModel } from '~/db/repositories/chatroom.repo'
+import { ChatRoomRepository } from '~/db/repositories/chatroom.repo'
+import type { MessageModel } from '~/db/repositories/message.repo'
+import { MessageRepository } from '~/db/repositories/message.repo'
+import { UserRepository } from '~/db/repositories/user.repo'
+import type { SafeUserModel } from '~/db/repositories/user.repo'
 
 export default defineNitroPlugin(async (nitro) => {
   let ioInitialized = false

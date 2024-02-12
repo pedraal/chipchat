@@ -1,18 +1,11 @@
-import { z } from 'zod'
+import type { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { ObjectId } from 'mongodb'
-import { type BaseModel, BaseRepository } from './base'
+import { userDTO } from '../dto/user.dto'
+import type { UserDTO, user } from '../dto/user.dto'
+import { type BaseModel, BaseRepository } from './base.repo'
 
-export const user = z.object({
-  username: z.string().min(3, 'Must be longer than 3 characters').max(20, 'Must be shorter than 20 characters').trim(),
-  password: z.string().min(3, 'Must be longer than 3 characters').max(20, 'Must be shorter than 20 characters'),
-})
-export type User = z.infer<typeof user>
-
-export const userDTO = z.object({ username: user.shape.username, password: user.shape.password }).strict()
-export type UserDTO = z.infer<typeof userDTO>
-
-export type UserModel = User & BaseModel
+export type UserModel = z.infer<typeof user> & BaseModel
 export type SafeUserModel = Omit<UserModel, 'password'>
 export class UserRepository extends BaseRepository<UserModel> {
   constructor() {
