@@ -1,3 +1,5 @@
+import { ZodError } from 'zod'
+import type { ChatRoomDTO } from '~/db/repositories/chatroom'
 import { ChatRoomRepository } from '~/db/repositories/chatroom'
 import type { SafeUserModel } from '~/db/repositories/user'
 
@@ -12,12 +14,19 @@ export default defineEventHandler(async (event) => {
     return setResponseStatus(event, 400, 'Missing room name')
 
   const chatRoomRepository = new ChatRoomRepository()
-  const room = await chatRoomRepository.findOrCreateOne(user.id, name)
 
-  if (!room)
-    return setResponseStatus(event, 500, 'Failed to create room')
-  if (room.bannedUserIds.includes(user.id))
-    return setResponseStatus(event, 403, 'You have been banned from this room')
+  try {
+    const room = await chatRoomRepository.findOrCreateOne(user.id, name)
+    if (room.bannedUserIds.includes(user.id))
+      return setResponseStatus(event, 403, 'You have been banned from this room')
 
-  return { room }
+    return { room }
+  }
+  catch (error) {
+    if (error instanceof ZodError) {
+      const formatedError = (error as ZodError<ChatRoomDTO>).format()
+      return setResponseStatus(event, 400, formatedError.name?._errors[0])
+    }
+    else { return setResponseStatus(event, 400, 'Failed to create or join room') }
+  }
 })

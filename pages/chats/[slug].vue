@@ -30,7 +30,7 @@ function _leaveRoom() {
 
 function leaveRoom() {
   _leaveRoom()
-
+  chatError.value = ''
   navigateTo('/chats')
 }
 

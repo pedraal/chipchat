@@ -27,7 +27,7 @@ async function joinRoom() {
     method: 'POST',
     body: { name: roomName.value },
     async onResponseError({ response }) {
-      formError.value.push(response.statusText)
+      formError.value = [response.statusText]
     },
   }).then(({ room }) => {
     navigateTo(`/chats/${room.slug}`)
