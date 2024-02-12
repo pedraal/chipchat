@@ -22,47 +22,50 @@ jobs:
         pnpm-version: [8]
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
+    # FIXME :
+    #   - Use a mongodb service for tests instead of mongo-memory-server
+    #   - Or fix the mongo-memory-server issue with https://github.com/nodkz/mongodb-memory-server/discussions/566#discussioncomment-1554416
+    # - name: Check out code
+    #   uses: actions/checkout@v2
+    #   with:
+    #     fetch-depth: 2
 
-      - uses: pnpm/action-setup@v2.0.1
-        with:
-          version: ${{ matrix.pnpm-version }}
+    # - uses: pnpm/action-setup@v2.0.1
+    #   with:
+    #     version: ${{ matrix.pnpm-version }}
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
+    # - name: Setup Node.js environment
+    #   uses: actions/setup-node@v2
+    #   with:
+    #     node-version: ${{ matrix.node-version }}
+    #     cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
+    # - name: Install dependencies
+    #   run: pnpm install
 
-      - name: Install Playwright
-        run: pnpm exec playwright-core install
+    # - name: Install Playwright
+    #   run: pnpm exec playwright-core install
 
-      - name: Test
-        run: pnpm test:ci
+    # - name: Test
+    #   run: pnpm test:ci
 
-      # Coverage measurement is not working properly with e2e tests
-      # - name: Code Coverage Report
-      #   uses: irongut/CodeCoverageSummary@v1.3.0
-      #   with:
-      #     filename: coverage/cobertura-coverage.xml
-      #     badge: true
-      #     fail_below_min: false
-      #     format: markdown
-      #     hide_branch_rate: false
-      #     hide_complexity: false
-      #     indicators: true
-      #     output: both
-      #     thresholds: 80 90
+    # Coverage measurement is not working properly with e2e tests
+    # - name: Code Coverage Report
+    #   uses: irongut/CodeCoverageSummary@v1.3.0
+    #   with:
+    #     filename: coverage/cobertura-coverage.xml
+    #     badge: true
+    #     fail_below_min: false
+    #     format: markdown
+    #     hide_branch_rate: false
+    #     hide_complexity: false
+    #     indicators: true
+    #     output: both
+    #     thresholds: 80 90
 
-      # - name: Add Coverage PR Comment
-      #   uses: marocchino/sticky-pull-request-comment@v2
-      #   if: github.event_name == 'pull_request'
-      #   with:
-      #     recreate: true
-      #     path: code-coverage-results.md
+    # - name: Add Coverage PR Comment
+    #   uses: marocchino/sticky-pull-request-comment@v2
+    #   if: github.event_name == 'pull_request'
+    #   with:
+    #     recreate: true
+    #     path: code-coverage-results.md
