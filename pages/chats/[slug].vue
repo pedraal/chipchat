@@ -127,7 +127,7 @@ function banUser() {
         </div>
       </div>
     </div>
-    <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/5 rounded-lg">
+    <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/10 rounded-2xl">
       <div v-for="message in messages" :key="`${message._id}`" class="flex flex-col gap-1 p-2" data-testid="message">
         <div data-testid="message-user">
           <UserTag :username="message.username" :class="[{ 'cursor-pointer': isAdmin && message.username !== user.username }]" @click="openUserModal(connectedUsers.find(u => u.id === message.userId))" />
@@ -137,16 +137,16 @@ function banUser() {
         </p>
       </div>
     </div>
-    <form class="flex gap-2" @submit.prevent="sendMessage">
-      <FormInput v-model="newMessage" class="w-full" placeholder="Type your message here" />
-      <button class="bg-primary-500 hover:bg-primary-600 transition-colors w-8 flex items-center justify-center rounded-lg text-white" type="submit" data-testid="submit">
+    <form class="flex gap-2 relative" @submit.prevent="sendMessage">
+      <FormInput v-model="newMessage" class="w-full py-3 px-4 pr-14" placeholder="Type your message here" />
+      <button class="absolute top-1.5 right-2 bg-primary-500 hover:bg-primary-600 transition-colors w-9 h-9 flex items-center justify-center rounded-full text-white" type="submit" data-testid="submit">
         <Icon name="heroicons:paper-airplane" class="w-6 h-6" />
       </button>
     </form>
   </div>
 
   <div v-if="inspectedUser" class="absolute inset-0 bg-gray-800/60 p-4">
-    <div class="bg-gray-100 dark:bg-gray-900 max-w-md w-full mx-auto flex flex-col gap-4 rounded-lg p-4">
+    <div class="bg-gray-100 dark:bg-gray-900 max-w-md w-full mx-auto flex flex-col gap-4 rounded-2xl p-4">
       <p class="text-center">
         <UserTag :username="inspectedUser.username" class="text-2xl" />
       </p>

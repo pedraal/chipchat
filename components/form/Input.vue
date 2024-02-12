@@ -1,7 +1,10 @@
 <script lang="ts" setup>
-defineProps<{
+import { twMerge } from 'tailwind-merge'
+
+const props = defineProps<{
   type?: 'text' | 'password' | 'textarea'
   name?: string
+  class?: string
 }>()
 
 const model = defineModel()
@@ -10,5 +13,5 @@ const injectedName = inject<string>('name', '')
 </script>
 
 <template>
-  <input :id="name || injectedName" v-model="model" :name="name || injectedName" :type="type || 'text'" class="peer bg-transparent ring-1 ring-gray-600 dark:ring-gray-400 rounded-lg py-1 px-2 focus:!ring-primary-500 focus:ring-2 outline-none">
+  <input :id="name || injectedName" v-model="model" :name="name || injectedName" :type="type || 'text'" :class="twMerge('peer bg-gray-500/20  rounded-full py-1 px-4 ring-2 ring-transparent focus:!ring-primary-500  outline-none transition-all', props.class || '')">
 </template>
