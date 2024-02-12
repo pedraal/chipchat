@@ -1,4 +1,5 @@
 import { ZodError } from 'zod'
+import { H3Error } from 'h3'
 import type { ChatRoomDTO } from '~/db/repositories/chatroom'
 import { ChatRoomRepository } from '~/db/repositories/chatroom'
 import type { SafeUserModel } from '~/db/repositories/user'
@@ -18,15 +19,20 @@ export default defineEventHandler(async (event) => {
   try {
     const room = await chatRoomRepository.findOrCreateOne(user.id, name)
     if (room.bannedUserIds.includes(user.id))
-      return setResponseStatus(event, 403, 'You have been banned from this room')
+      throw createError({ status: 403, data: { name: 'You have been banned from this room' } })
 
     return { room }
   }
   catch (error) {
     if (error instanceof ZodError) {
       const formatedError = (error as ZodError<ChatRoomDTO>).format()
-      return setResponseStatus(event, 400, formatedError.name?._errors[0])
+      sendError(event, createError({ status: 400, data: formatedError }))
     }
-    else { return setResponseStatus(event, 400, 'Failed to create or join room') }
+    else if (error instanceof H3Error) {
+      sendError(event, error)
+    }
+    else {
+      sendError(event, createError({ status: 500, data: { name: 'Failed to create or join room' } }))
+    }
   }
 })

@@ -26,12 +26,11 @@ async function joinRoom() {
   $fetch(`/api/chats/join`, {
     method: 'POST',
     body: { name: roomName.value },
-    async onResponseError({ response }) {
-      formError.value = [response.statusText]
-    },
   }).then(({ room }) => {
     navigateTo(`/chats/${room.slug}`)
-  }).catch(() => {
+  }).catch((e) => {
+    formError.value = e.data.data.name._errors || [e.data.data.name] || [e.response.statusText]
+  }).finally(() => {
     joining.value = false
   })
 }
