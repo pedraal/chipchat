@@ -24,12 +24,12 @@ export default defineEventHandler(async (event) => {
     return { room }
   }
   catch (error) {
-    if (error instanceof ZodError) {
+    if (error instanceof H3Error) {
+      sendError(event, error)
+    }
+    else if (error instanceof ZodError) {
       const formatedError = (error as ZodError<ChatRoomDTO>).format()
       sendError(event, createError({ status: 400, data: formatedError }))
-    }
-    else if (error instanceof H3Error) {
-      sendError(event, error)
     }
     else {
       sendError(event, createError({ status: 500, data: { name: 'Failed to create or join room' } }))

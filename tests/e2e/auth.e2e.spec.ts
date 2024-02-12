@@ -7,16 +7,16 @@ import { UserRepository } from '~/db/repositories/user.repo'
 
 const db = new MemoryDb()
 
-afterAll(async () => {
-  await db.disconnect()
-})
-
 beforeEach(() => {
   consola.restoreConsole()
 })
 
 afterEach(async () => {
   await db.clear()
+})
+
+afterAll(async () => {
+  await db.disconnect()
 })
 
 await setup({

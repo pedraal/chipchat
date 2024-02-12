@@ -8,8 +8,12 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest run --dir tests",
-    "test:watch": "vitest watch --dir tests"
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:ci": "eslint --output-file eslint_report.json --format json ."
   },
   "dependencies": {
     "@vueuse/nuxt": "^10.7.2",
@@ -31,6 +35,7 @@
     "@nuxtjs/tailwindcss": "^6.11.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.5",
+    "@vitest/coverage-v8": "^1.2.2",
     "@vitest/ui": "^1.2.2",
     "@vue/test-utils": "^2.4.4",
     "eslint": "^8.56.0",

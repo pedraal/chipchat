@@ -8,16 +8,16 @@ beforeAll(async () => {
   await db.connect()
 })
 
-afterAll(async () => {
-  await db.disconnect()
-})
-
 beforeEach(() => {
   consola.restoreConsole()
 })
 
 afterEach(async () => {
   await db.clear()
+})
+
+afterAll(async () => {
+  await db.disconnect()
 })
 
 describe('user repository', () => {

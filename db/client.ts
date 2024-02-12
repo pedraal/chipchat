@@ -31,7 +31,8 @@ export class DbClient {
   async waitConnection() {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        if (this.connected) resolve()
+        if (this.connected)
+          resolve()
       }, 100)
     })
   }
