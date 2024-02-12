@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { testNuxtConfig } from '../utils/nuxt_config'
