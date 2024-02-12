@@ -19,7 +19,7 @@ const formErrors = reactive({
   passwordConfirmation: [] as string[],
 })
 
-function validate(event: Event) {
+function validate() {
   const userDTOWithPasswordConfirmation = userDTO.extend({
     passwordConfirmation: userDTO.shape.password.refine((confirmation) => {
       return confirmation === formData.password
@@ -28,15 +28,40 @@ function validate(event: Event) {
 
   const result = userDTOWithPasswordConfirmation.safeParse(formData)
   if (!result.success) {
-    event.preventDefault()
     const formattedError = result.error.format()
     formErrors.username = formattedError.username?._errors || []
     formErrors.password = formattedError.password?._errors || []
     formErrors.passwordConfirmation = formattedError.passwordConfirmation?._errors || []
   }
+
+  return result.success
 }
 
-const route = useRoute()
+const { fetch } = useUserSession()
+const error = ref(false)
+function onSubmit() {
+  if (!validate())
+    return
+
+  $fetch('/api/signup', {
+    method: 'POST',
+    body: formData,
+  })
+    .then(() => fetch())
+    .then(() => {
+      navigateTo('/chats')
+    }).catch((err) => {
+      if (err.data) {
+        formErrors.username = err.data.data.username?._errors || []
+        formErrors.password = err.data.data.password?._errors || []
+        formErrors.passwordConfirmation = err.data.data.passwordConfirmation?._errors || []
+      }
+      else {
+        console.error(err)
+        error.value = true
+      }
+    })
+}
 </script>
 
 <template>
@@ -45,9 +70,9 @@ const route = useRoute()
       <h1 class="page-title mb-4">
         Signup to ChipChat
       </h1>
-      <Form action="/api/signup" method="post" @submit="validate">
-        <p v-if="route.query.error" class="text-red-500">
-          Login failed
+      <Form @submit.prevent="onSubmit">
+        <p v-if="error" class="text-red-500">
+          Failed to signup, please try again
         </p>
         <FormGroup name="username" label="Username" :errors="formErrors.username">
           <FormInput v-model="formData.username" type="text" autocomplete="username" autofocus />

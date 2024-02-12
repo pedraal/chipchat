@@ -36,7 +36,7 @@ export class UserRepository extends BaseRepository<UserModel> {
   async authenticate(dto: UserDTO) {
     const user = await this.collection.findOne({ username: dto.username })
     if (!user || !bcrypt.compareSync(dto.password, user.password))
-      throw new Error('Invalid username or password')
+      return false
 
     return user
   }

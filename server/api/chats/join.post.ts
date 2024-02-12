@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
       sendError(event, error)
     }
     else if (error instanceof ZodError) {
-      const formatedError = (error as ZodError<ChatRoomDTO>).format()
+      const formatedError = (error as ZodError).format()
       sendError(event, createError({ status: 400, data: formatedError }))
     }
     else {
