@@ -1,5 +1,6 @@
 import type * as Playwright from 'playwright-core'
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { expect as expectPage } from '@playwright/test'
 import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { testNuxtConfig } from '../utils/nuxt_config'
@@ -24,6 +25,9 @@ afterAll(async () => {
 
 await setup({
   nuxtConfig: await testNuxtConfig({ db }),
+  browserOptions: {
+    type: 'chromium',
+  },
 })
 
 describe('chat', () => {
@@ -34,8 +38,8 @@ describe('chat', () => {
       await page.getByLabel('Room name').type('test room')
       await page.getByTestId('submit').click()
       await page.waitForURL('**/chats/test-room')
-      await expect(page.locator('h1').textContent()).resolves.toContain('test room')
-      expect(chatRoomRepo.collection.findOne({ name: 'test room' })).resolves.toMatchObject({
+      await expectPage(page.locator('h1')).toHaveText('# test room')
+      await expect(chatRoomRepo.collection.findOne({ name: 'test room' })).resolves.toMatchObject({
         name: 'test room',
         slug: 'test-room',
         adminId: user.id,
@@ -49,7 +53,7 @@ describe('chat', () => {
       chatRoomRepo.collection.updateOne({ _id: chatRoom._id }, { $push: { bannedUserIds: user.id } })
       await page.getByLabel('Room name').type('test')
       await page.getByTestId('submit').click()
-      await expect(page.getByTestId('roomName-error').textContent()).resolves.toContain('You have been banned from this room')
+      await expectPage(page.getByTestId('roomName-error')).toHaveText('You have been banned from this room')
     })
   })
 
@@ -61,9 +65,9 @@ describe('chat', () => {
       await joinRoom(page2, user2)
       await page1.getByPlaceholder('Type your message here').type('hello')
       await page1.getByTestId('submit').click()
-      await expect(page1.getByTestId('message-user').textContent()).resolves.toContain('test1')
-      await expect(page1.getByTestId('message-content').textContent()).resolves.toContain('hello')
-      await expect(page2.getByTestId('message-content').textContent()).resolves.toContain('hello')
+      await expectPage(page1.getByTestId('message-user')).toHaveText('test1')
+      await expectPage(page1.getByTestId('message-content')).toHaveText('hello')
+      await expectPage(page2.getByTestId('message-content')).toHaveText('hello')
     })
 
     it('should get the 10 latest messages on join', async () => {
@@ -74,10 +78,9 @@ describe('chat', () => {
       const messageRepo = new MessageRepository()
       for (let i = 0; i < 15; i++)
         await messageRepo.create(user, chatRoom.id, { content: `message ${i}` })
-
       const { page, user: user2 } = await loginAs('test2', 'test')
       await joinRoom(page, user2)
-      await expect(page.getByTestId('message').count()).resolves.toBe(10)
+      await expectPage(page.getByTestId('message')).toHaveCount(10)
     })
   })
 
@@ -92,8 +95,8 @@ describe('chat', () => {
       await page1.getByTestId('ban-button').click()
       // wait for ban button to not be visible
       await page1.waitForSelector('[data-testid="ban-button"]', { state: 'detached' })
-      await expect(page1.getByTestId('connected-users').getByTestId('test2-tag').count()).resolves.toBe(0)
-      await expect(page2.getByTestId('roomName-error').textContent()).resolves.toContain('You have been banned from test')
+      await expectPage(page1.getByTestId('connected-users').getByTestId('test2-tag')).not.toBeVisible()
+      await expectPage(page2.getByTestId('roomName-error')).toHaveText('You have been banned from test')
     })
   })
 })
@@ -106,6 +109,7 @@ async function loginAs(username: string, password: string) {
   await page.getByLabel('Username').type(username)
   await page.getByLabel('Password').type(password)
   await page.getByTestId('submit').click()
+  await page.waitForURL('**/chats')
 
   return { page, user }
 }
@@ -115,5 +119,6 @@ async function joinRoom(page: Playwright.Page, user: UserModel, roomName = 'test
   const chatRoom = await chatRoomRepo.findOrCreateOne(user.id, roomName)
   const url = new URL(page.url())
   await page.goto(`${url.origin}/chats/${chatRoom.slug}`)
-  await expect(page.locator('h1').textContent()).resolves.toContain(roomName)
+  await page.waitForURL(`**/chats/${chatRoom.slug}`)
+  await expectPage(page.locator('h1')).toHaveText(`# ${roomName}`)
 }
