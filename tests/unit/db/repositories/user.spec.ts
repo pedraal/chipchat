@@ -63,7 +63,7 @@ describe('user repository', () => {
     it('should reject if password does not match', async () => {
       const repo = new UserRepository()
       await repo.create({ username: 'foobar', password: 'test' })
-      await expect(repo.authenticate({ username: 'foobar', password: 'testy' })).rejects.toThrowError('Invalid username or password')
+      await expect(repo.authenticate({ username: 'foobar', password: 'testy' })).resolves.toBe(false)
     })
   })
 

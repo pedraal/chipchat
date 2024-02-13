@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { z } from 'zod'
 import { userDTO } from '~/db/dto/user.dto'
 
 definePageMeta({
@@ -21,7 +22,7 @@ const formErrors = reactive({
 
 function validate() {
   const userDTOWithPasswordConfirmation = userDTO.extend({
-    passwordConfirmation: userDTO.shape.password.refine((confirmation) => {
+    passwordConfirmation: z.string().refine((confirmation) => {
       return confirmation === formData.password
     }, { message: 'Passwords don\'t match' }),
   })
