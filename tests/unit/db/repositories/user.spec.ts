@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { consola } from 'consola'
 import { UserRepository } from '~/db/repositories/user.repo'
 import { TestDb } from '~/tests/utils/db'
