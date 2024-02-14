@@ -1,28 +1,22 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { expect as expectPage } from '@playwright/test'
 import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { testNuxtConfig } from '../utils/nuxt_config'
-import { MemoryDb } from '../utils/db'
+import { TestDb } from '../utils/db'
 import { UserRepository } from '~/db/repositories/user.repo'
-import { DbClient } from '~/db/client'
 
-const db = new MemoryDb()
+await setup({
+  nuxtConfig: await testNuxtConfig(),
+})
 
-beforeEach(() => {
+beforeEach(async () => {
+  await TestDb.clear()
   consola.restoreConsole()
 })
 
-afterEach(async () => {
-  await DbClient.db.dropDatabase()
-})
-
 afterAll(async () => {
-  await db.disconnect()
-})
-
-await setup({
-  nuxtConfig: await testNuxtConfig({ db }),
+  await TestDb.disconnect()
 })
 
 describe('auth', async () => {

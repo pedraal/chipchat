@@ -1,23 +1,19 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { consola } from 'consola'
 import { UserRepository } from '~/db/repositories/user.repo'
-import { MemoryDb } from '~/tests/utils/db'
+import { TestDb } from '~/tests/utils/db'
 
-const db = new MemoryDb()
 beforeAll(async () => {
-  await db.connect()
+  await TestDb.connect()
 })
 
-beforeEach(() => {
+beforeEach(async () => {
+  await TestDb.clear()
   consola.restoreConsole()
 })
 
-afterEach(async () => {
-  await db.clear()
-})
-
 afterAll(async () => {
-  await db.disconnect()
+  await TestDb.disconnect()
 })
 
 describe('user repository', () => {

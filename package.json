@@ -42,7 +42,6 @@
     "eslint": "^8.56.0",
     "get-port-please": "^3.1.2",
     "happy-dom": "^13.3.8",
-    "mongodb-memory-server": "^9.1.6",
     "nuxt-auth-utils": "^0.0.15",
     "nuxt-icon": "^0.6.8",
     "playwright-core": "^1.41.2",

@@ -20,34 +20,37 @@ jobs:
         os: [ubuntu-latest]
         node-version: [20]
         pnpm-version: [8]
+        mongodb-version: [6]
 
     steps:
-    # FIXME :
-    #   - Use a mongodb service for tests instead of mongo-memory-server
-    #   - Or fix the mongo-memory-server issue with https://github.com/nodkz/mongodb-memory-server/discussions/566#discussioncomment-1554416
-    # - name: Check out code
-    #   uses: actions/checkout@v2
-    #   with:
-    #     fetch-depth: 2
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
 
-    # - uses: pnpm/action-setup@v2.0.1
-    #   with:
-    #     version: ${{ matrix.pnpm-version }}
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
-    # - name: Setup Node.js environment
-    #   uses: actions/setup-node@v2
-    #   with:
-    #     node-version: ${{ matrix.node-version }}
-    #     cache: pnpm
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: ${{ matrix.pnpm-version }}
 
-    # - name: Install dependencies
-    #   run: pnpm install
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
 
-    # - name: Install Playwright
-    #   run: pnpm exec playwright-core install
+      - name: Install dependencies
+        run: pnpm install
 
-    # - name: Test
-    #   run: pnpm test:ci
+      - name: Install Playwright
+        run: pnpm exec playwright-core install
+
+      - name: Test
+        run: pnpm test:ci
 
     # Coverage measurement is not working properly with e2e tests
     # - name: Code Coverage Report
