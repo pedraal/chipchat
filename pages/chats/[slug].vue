@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { ChatRoomModel } from '~/db/repositories/chatroom'
-import type { MessageModel } from '~/db/repositories/message'
-import type { SafeUserModel } from '~/db/repositories/user'
+import { z } from 'zod'
+import type { ChatRoomModel } from '~/db/repositories/chatroom.repo'
+import type { MessageModel } from '~/db/repositories/message.repo'
+import type { SafeUserModel } from '~/db/repositories/user.repo'
 
 definePageMeta({
   middleware: [
@@ -23,17 +24,6 @@ const messageContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const sending = ref(false)
 
-function _leaveRoom() {
-  if (socket.value)
-    socket.value.disconnect()
-}
-
-function leaveRoom() {
-  _leaveRoom()
-  chatError.value = ''
-  navigateTo('/chats')
-}
-
 function sendMessage() {
   if (!socket.value || !room.value || newMessage.value === '' || sending.value)
     return
@@ -45,8 +35,27 @@ function sendMessage() {
   })
 }
 
+const paramsSchema = z.object({
+  slug: z.string(),
+})
+
+const validParams = computed(() => {
+  try {
+    return paramsSchema.parse(route.params)
+  }
+  catch (e) {
+    return null
+  }
+})
+
 onMounted(() => {
-  initSocket(route.params.slug as string)
+  if (!validParams.value) {
+    chatError.value = 'Invalid chat room'
+    navigateTo('/chats')
+    return
+  }
+
+  initSocket({ ...validParams.value })
 
   socket.value?.on('joinRoom', (_room, _connectedUsers, _messages) => {
     room.value = _room
@@ -70,10 +79,22 @@ onMounted(() => {
     chatError.value = `You have been banned from ${room.value?.name || 'this chat'}`
     navigateTo('/chats')
   })
+
+  socket.value?.on('disconnect', (reason) => {
+    if (reason !== 'io client disconnect')
+      chatError.value = 'Disconnected from the chat room'
+    navigateTo('/chats')
+  })
+
+  socket.value?.on('connect_error', (error) => {
+    chatError.value = error.message
+    navigateTo('/chats')
+  })
 })
 
 onBeforeUnmount(() => {
-  _leaveRoom()
+  if (socket.value?.connected)
+    socket.value.disconnect()
 })
 
 function scrollToBottom() {
@@ -108,9 +129,9 @@ function banUser() {
 <template>
   <div v-if="room" class="h-full flex flex-col w-full gap-4 p-4">
     <div class="flex justify-between items-center gap-4">
-      <a href="#" class="nav-item" @click.prevent="leaveRoom">
+      <NuxtLink to="/chats" class="nav-item">
         <Icon name="heroicons:arrow-left" class="w-6 h-6" />
-      </a>
+      </NuxtLink>
       <h1 class="page-title truncate">
         # {{ room.name }}
       </h1>
@@ -127,7 +148,7 @@ function banUser() {
         </div>
       </div>
     </div>
-    <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/5 rounded-lg">
+    <div ref="messageContainer" class="grow overflow-y-auto bg-gray-500/10 rounded-2xl">
       <div v-for="message in messages" :key="`${message._id}`" class="flex flex-col gap-1 p-2" data-testid="message">
         <div data-testid="message-user">
           <UserTag :username="message.username" :class="[{ 'cursor-pointer': isAdmin && message.username !== user.username }]" @click="openUserModal(connectedUsers.find(u => u.id === message.userId))" />
@@ -137,16 +158,16 @@ function banUser() {
         </p>
       </div>
     </div>
-    <form class="flex gap-2" @submit.prevent="sendMessage">
-      <FormInput v-model="newMessage" class="w-full" placeholder="Type your message here" />
-      <button class="bg-primary-500 hover:bg-primary-600 transition-colors w-8 flex items-center justify-center rounded-lg text-white" type="submit" data-testid="submit">
+    <form class="flex gap-2 relative" @submit.prevent="sendMessage">
+      <FormInput v-model="newMessage" class="w-full py-3 px-4 pr-14" placeholder="Type your message here" />
+      <button class="absolute top-1.5 right-2 bg-primary-500 hover:bg-primary-600 transition-colors w-9 h-9 flex items-center justify-center rounded-full text-white" type="submit" data-testid="submit">
         <Icon name="heroicons:paper-airplane" class="w-6 h-6" />
       </button>
     </form>
   </div>
 
   <div v-if="inspectedUser" class="absolute inset-0 bg-gray-800/60 p-4">
-    <div class="bg-gray-100 dark:bg-gray-900 max-w-md w-full mx-auto flex flex-col gap-4 rounded-lg p-4">
+    <div class="bg-gray-100 dark:bg-gray-900 max-w-md w-full mx-auto flex flex-col gap-4 rounded-2xl p-4">
       <p class="text-center">
         <UserTag :username="inspectedUser.username" class="text-2xl" />
       </p>

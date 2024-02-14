@@ -1,0 +1,89 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    name: Lint
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [20]
+        pnpm-version: [8]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: ${{ matrix.pnpm-version }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run ESLint
+        run: pnpm lint:ci
+        continue-on-error: true
+
+      - name: Annotate ESLint
+        uses: ataylorme/eslint-annotate-action@v2
+        with:
+          repo-token: '${{ secrets.GITHUB_TOKEN }}'
+          report-json: eslint_report.json
+          fail-on-warning: true
+
+  # Nuxi typecheck is not ready yet (it doesn't use nitro tsconfig for server directory)
+  # typecheck:
+  #   permissions:
+  #     checks: write
+  #     pull-requests: write
+  #     contents: write
+  #   name: Typecheck
+  #   timeout-minutes: 5
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest]
+  #       node-version: [20]
+  #       pnpm-version: [8]
+
+  #   steps:
+  #     - name: Check out code
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 2
+
+  #     - uses: pnpm/action-setup@v2.0.1
+  #       with:
+  #         version: ${{ matrix.pnpm-version }}
+
+  #     - name: Setup Node.js environment
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: pnpm
+
+  #     - name: Install dependencies
+  #       run: pnpm install
+
+  #     - name: Run typecheck
+  #       run: npx nuxi typecheck

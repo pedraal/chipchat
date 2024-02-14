@@ -1,19 +1,12 @@
 import type { NuxtConfig } from 'nuxt/schema'
-import type { MemoryDb } from './db'
+import { TestDb } from './db'
 
-interface TestNuxtConfigOptions {
-  db?: MemoryDb
-}
+export async function testNuxtConfig(): Promise<NuxtConfig> {
+  await TestDb.connect()
 
-export async function testNuxtConfig(options: TestNuxtConfigOptions) {
-  const config: NuxtConfig = {
-    runtimeConfig: {},
+  return {
+    runtimeConfig: {
+      mongoUrl: TestDb.url,
+    },
   }
-
-  if (options.db) {
-    await options.db.connect()
-    config.runtimeConfig!.mongoUrl = options.db.server!.getUri()
-  }
-
-  return config
 }

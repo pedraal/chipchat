@@ -5,10 +5,29 @@ definePageMeta({
   ],
 })
 
-const username = ref('')
-const password = ref('')
+const { fetch } = useUserSession()
 
-const route = useRoute()
+const formData = reactive({
+  username: '',
+  password: '',
+})
+const formError = ref<string | null>(null)
+
+function onSubmit() {
+  if (!formData.username || !formData.password)
+    return
+
+  $fetch('/api/login', {
+    method: 'POST',
+    body: formData,
+  })
+    .then(() => fetch())
+    .then(() => {
+      navigateTo('/chats')
+    }).catch((err) => {
+      formError.value = err.data.data.message
+    })
+}
 </script>
 
 <template>
@@ -17,15 +36,15 @@ const route = useRoute()
       <h1 class="page-title mb-4">
         Login to ChipChat
       </h1>
-      <Form action="/api/login" method="post">
-        <p v-if="route.query.error" class="text-red-500">
-          Login failed
+      <Form @submit.prevent="onSubmit">
+        <p v-if="formError" class="text-red-500">
+          {{ formError }}
         </p>
         <FormGroup name="username" label="Username">
-          <FormInput v-model="username" type="text" autocomplete="username" autofocus />
+          <FormInput v-model="formData.username" type="text" autocomplete="username" autofocus />
         </FormGroup>
         <FormGroup name="password" label="Password">
-          <FormInput v-model="password" type="password" autocomplete="password" />
+          <FormInput v-model="formData.password" type="password" autocomplete="password" />
         </FormGroup>
         <template #submit>
           Login

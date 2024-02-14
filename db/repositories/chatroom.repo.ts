@@ -1,20 +1,10 @@
-import { z } from 'zod'
+import type { z } from 'zod'
 import { ObjectId } from 'mongodb'
-import { type BaseModel, BaseRepository } from './base'
+import { chatRoomDTO } from '../dto/chatroom.dto'
+import type { ChatRoomDTO, chatRoom } from '../dto/chatroom.dto'
+import { type BaseModel, BaseRepository } from './base.repo'
 
-export const chatRoom = z.object({
-  name: z.string().min(3, 'Must be longer than 3 characters').max(20, 'Must be shorter than 20 characters').trim(),
-  slug: z.string(),
-  adminId: z.string(),
-  connectedUserIds: z.array(z.string()),
-  bannedUserIds: z.array(z.string()),
-})
-export type ChatRoom = z.infer<typeof chatRoom>
-
-export const chatRoomDTO = z.object({ name: chatRoom.shape.name, slug: chatRoom.shape.slug }).strict()
-export type ChatRoomDTO = z.infer<typeof chatRoomDTO>
-
-export type ChatRoomModel = ChatRoom & BaseModel
+export type ChatRoomModel = z.infer<typeof chatRoom> & BaseModel
 
 export class ChatRoomRepository extends BaseRepository<ChatRoomModel> {
   constructor() {

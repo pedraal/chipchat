@@ -1,15 +1,21 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { consola } from 'consola'
 import { $fetchToDom } from '../utils/dom'
 import { testNuxtConfig } from '../utils/nuxt_config'
+import { TestDb } from '../utils/db'
 
 await setup({
-  nuxtConfig: await testNuxtConfig({ }),
+  nuxtConfig: await testNuxtConfig(),
 })
 
-beforeEach(() => {
+beforeEach(async () => {
+  await TestDb.clear()
   consola.restoreConsole()
+})
+
+afterAll(async () => {
+  await TestDb.disconnect()
 })
 
 describe('app', async () => {

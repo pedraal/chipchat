@@ -14,6 +14,6 @@ provide('name', props.name)
       {{ errors[0] }}
     </span>
     <slot />
-    <label :for="name" class="text-xl peer-focus:text-primary-500">{{ label }}</label>
+    <label :for="name" class="text-xl peer-focus:text-primary-500 transition-colors">{{ label }}</label>
   </div>
 </template>

@@ -1,23 +1,19 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { consola } from 'consola'
-import { UserRepository } from '~/db/repositories/user'
-import { MemoryDb } from '~/tests/utils/db'
+import { UserRepository } from '~/db/repositories/user.repo'
+import { TestDb } from '~/tests/utils/db'
 
-const db = new MemoryDb()
 beforeAll(async () => {
-  await db.connect()
+  await TestDb.connect()
 })
 
-afterAll(async () => {
-  await db.disconnect()
-})
-
-beforeEach(() => {
+beforeEach(async () => {
+  await TestDb.clear()
   consola.restoreConsole()
 })
 
-afterEach(async () => {
-  await db.clear()
+afterAll(async () => {
+  await TestDb.disconnect()
 })
 
 describe('user repository', () => {
@@ -63,7 +59,7 @@ describe('user repository', () => {
     it('should reject if password does not match', async () => {
       const repo = new UserRepository()
       await repo.create({ username: 'foobar', password: 'test' })
-      await expect(repo.authenticate({ username: 'foobar', password: 'testy' })).rejects.toThrowError('Invalid username or password')
+      await expect(repo.authenticate({ username: 'foobar', password: 'testy' })).resolves.toBe(false)
     })
   })
 

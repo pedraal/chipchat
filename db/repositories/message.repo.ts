@@ -1,19 +1,9 @@
-import { z } from 'zod'
-import { type BaseModel, BaseRepository } from './base'
-import type { SafeUserModel } from './user'
+import type { z } from 'zod'
+import { type MessageDTO, type message, messageDTO } from '../dto/message.dto'
+import { type BaseModel, BaseRepository } from './base.repo'
+import type { SafeUserModel } from './user.repo'
 
-export const message = z.object({
-  userId: z.string(),
-  username: z.string(),
-  chatRoomId: z.string(),
-  content: z.string().min(1),
-})
-export type Message = z.infer<typeof message>
-
-export const messageDTO = z.object({ content: message.shape.content }).strict()
-export type MessageDTO = z.infer<typeof messageDTO>
-
-export type MessageModel = Message & BaseModel
+export type MessageModel = z.infer<typeof message> & BaseModel
 
 export class MessageRepository extends BaseRepository<MessageModel> {
   constructor() {

@@ -8,6 +8,10 @@ export class DbClient {
     await this.instance.connect()
   }
 
+  static async disconnect() {
+    await this.instance.disconnect()
+  }
+
   static get db() {
     return this.instance.client.db()
   }
@@ -28,10 +32,16 @@ export class DbClient {
     this.connected = true
   }
 
+  async disconnect() {
+    await this.client.close()
+    this.connected = false
+  }
+
   async waitConnection() {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        if (this.connected) resolve()
+        if (this.connected)
+          resolve()
       }, 100)
     })
   }
